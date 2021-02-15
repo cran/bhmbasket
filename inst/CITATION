@@ -1,0 +1,20 @@
+citHeader("To cite bhmbasket in publications please use:")
+
+# year <- sub("-.*", "", meta$Date)
+# year <- sub(".*(2[[:digit:]]{3})-.*", "\\1", meta$Date)
+# year <- version$year
+year <- 2021
+note <- sprintf("R package version %s", meta$Version)
+
+citEntry(
+  entry  = "Manual",
+  title  = "bhmbasket: Bayesian Hierarchical Models for Basket Trials",
+  author = person(given = "Stephan", family = "Wojciekowski"),
+  year   = year,
+  note   = note,
+  url    = "https://CRAN.R-project.org/package=bhmbasket",
+  textVersion = paste0(
+    "Wojciekowski, S (", year, "). bhmbasket: Bayesian Hierarchical Models for Basket Trials. ", note, "."
+  )
+)
+
