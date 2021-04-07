@@ -4,12 +4,17 @@
 \alias{loadAnalyses}
 \title{loadAnalyses}
 \usage{
-loadAnalyses(scenario_numbers, analysis_numbers, load_path = tempdir())
+loadAnalyses(
+  scenario_numbers,
+  analysis_numbers = rep(1, length(scenario_numbers)),
+  load_path = tempdir()
+)
 }
 \arguments{
 \item{scenario_numbers}{A (vector of) positive integer(s) for the scenario number(s)}
 
-\item{analysis_numbers}{A (vector of) positive integer(s) for the analysis number(s)}
+\item{analysis_numbers}{A (vector of) positive integer(s) for the analysis number(s),
+Default: \code{rep(1, length(scenario_numbers))}}
 
 \item{load_path}{A string providing a path where the scenarios are being stored,
 Default: \code{\link[base]{tempfile}}}

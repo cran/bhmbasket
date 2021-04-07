@@ -455,7 +455,7 @@ getPostQuantiles <- function (
 #' E.g. providing `c(2, 1)` calculates the difference between cohort `2` and cohort `1`.
 #' If `NULL`, no subtractions are performed, Default: `NULL`
 #' @param n_mcmc_iterations A positive integer for the number of MCMC iterations,
-#' Default: `10000`
+#' see Details, Default: `10000`
 #' @param n_cores A positive integer for the number of cores for the parallelization,
 #' Default: `parallel::detectCores() - 1L`
 #' @param seed A numeric for the random seed, Default: `as.numeric(Sys.time())`
@@ -471,8 +471,18 @@ getPostQuantiles <- function (
 #'   \item Pooled beta-binomial approach: `"pooled"`
 #'   \item Stratified beta-binomial approach: `"stratified"`
 #' }
-#' The posterior distributions of the BHMs are approximated with Markov chain Monte Carlo methods.
-#' The MCMC methods are implemented in JAGS.
+#' The posterior distributions of the BHMs are approximated with Markov chain Monte Carlo (MCMC)
+#' methods implemented in JAGS.
+#' Two independent chains are used with each `n_mcmc_iterations` number of MCMC iterations.
+#' The first `floor(n_mcmc_iterations / 3)` number of iterations are discarded as burn-in period.
+#' No thinning is applied.
+#'
+#' Note that the value for `n_mcmc_iterations` required for a good approximation of the posterior
+#' distributions depends on the analysis model, the investigated scenarios, and the use case.
+#' The default value might be a good compromise between run-time and approximation for
+#' the estimation of decision probabilities, but
+#' it should definitively be increased for the analysis of a single trial's outcome.
+#'
 #' The JAGS code for the BHM `"exnex"` was taken from Neuenschwander et al. (2016).
 #' The JAGS code for the BHM `"exnex_adj"` is based on the JAGS code for `"exnex"`.
 #' @seealso
@@ -1009,7 +1019,8 @@ saveAnalyses <- function (
 #' @param load_path A string providing a path where the scenarios are being stored,
 #' Default: \code{\link[base]{tempfile}}
 #' @param scenario_numbers A (vector of) positive integer(s) for the scenario number(s)
-#' @param analysis_numbers A (vector of) positive integer(s) for the analysis number(s)
+#' @param analysis_numbers A (vector of) positive integer(s) for the analysis number(s),
+#' Default: `rep(1, length(scenario_numbers))`
 #' @return Returns an object of class `analysis_list`
 #' @seealso
 #'  \code{\link[bhmbasket]{performAnalyses}}
@@ -1036,8 +1047,8 @@ saveAnalyses <- function (
 loadAnalyses <- function (
 
   scenario_numbers,
-  analysis_numbers,
-  load_path = tempdir()
+  analysis_numbers = rep(1, length(scenario_numbers)),
+  load_path        = tempdir()
 
 ) {
 
@@ -1049,7 +1060,7 @@ loadAnalyses <- function (
     "Please provide a string containing a path for the argument 'load_path'")
 
   if (missing(scenario_numbers)) stop (error_scenario_numbers)
-  if (missing(analysis_numbers)) stop (error_analysis_numbers)
+  # if (missing(analysis_numbers)) stop (error_analysis_numbers)
 
   if (!is.character(load_path) || length(load_path) > 1) stop (error_load_path)
 

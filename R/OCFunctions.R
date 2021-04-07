@@ -291,10 +291,7 @@ getGoProbabilities <- function (
         #                             consider_decisions)
         # consider_probs     <- t(as.matrix(colMeans(consider_decisions)))
 
-        if (!isTRUE(all.equal(sum(sapply(seq_len(ncol(go_decisions)),
-                                         function (i) {
-          sum(go_decisions[, i] * nogo_decisions[, i])
-        })), 0)))
+        if (!isTRUE(all.equal(sum(go_decisions * nogo_decisions), 0)))
           stop (paste("There are cohorts for which both go and nogo decisions",
                       "are TRUE. Please revise your decision rules."))
 
@@ -809,13 +806,13 @@ getGoDecisions <- function (
           cohort_names             = cohort_names),
         decision_rule   = boundary_rules[[n]])
 
+      ## combine new decision outcomes with previous decisions (and convert to logical)
+      previous_gos <- analysis_data$scenario_data$previous_analyses$go_decisions[, -1]
+      go_decisions <- go_decisions * previous_gos > 0
+
       ## Overall go:
       overall_go   <- apply(go_decisions, 1, function (x) sum (x) >= overall_min_gos)
       go_decisions <- cbind(overall = overall_go, go_decisions)
-
-      ## combine new decision outcomes with previous decisions (and convert to logical)
-      previous_gos <- analysis_data$scenario_data$previous_analyses$go_decisions
-      go_decisions <- go_decisions * previous_gos[, seq_len(ncol(go_decisions))] > 0
 
       ## store
       methods_decisions_list[[n]] <- go_decisions

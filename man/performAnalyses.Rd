@@ -42,7 +42,7 @@ E.g. providing \code{c(2, 1)} calculates the difference between cohort \code{2} 
 If \code{NULL}, no subtractions are performed, Default: \code{NULL}}
 
 \item{n_mcmc_iterations}{A positive integer for the number of MCMC iterations,
-Default: \code{10000}}
+see Details, Default: \code{10000}}
 
 \item{n_cores}{A positive integer for the number of cores for the parallelization,
 Default: \code{parallel::detectCores() - 1L}}
@@ -69,8 +69,18 @@ This function applies the following analysis models to (simulated) scenarios of 
 \item Pooled beta-binomial approach: \code{"pooled"}
 \item Stratified beta-binomial approach: \code{"stratified"}
 }
-The posterior distributions of the BHMs are approximated with Markov chain Monte Carlo methods.
-The MCMC methods are implemented in JAGS.
+The posterior distributions of the BHMs are approximated with Markov chain Monte Carlo (MCMC)
+methods implemented in JAGS.
+Two independent chains are used with each \code{n_mcmc_iterations} number of MCMC iterations.
+The first \code{floor(n_mcmc_iterations / 3)} number of iterations are discarded as burn-in period.
+No thinning is applied.
+
+Note that the value for \code{n_mcmc_iterations} required for a good approximation of the posterior
+distributions depends on the analysis model, the investigated scenarios, and the use case.
+The default value might be a good compromise between run-time and approximation for
+the estimation of decision probabilities, but
+it should definitively be increased for the analysis of a single trial's outcome.
+
 The JAGS code for the BHM \code{"exnex"} was taken from Neuenschwander et al. (2016).
 The JAGS code for the BHM \code{"exnex_adj"} is based on the JAGS code for \code{"exnex"}.
 }
