@@ -12,8 +12,8 @@ performAnalyses(
   prior_parameters_list = NULL,
   calc_differences = NULL,
   n_mcmc_iterations = 10000,
-  n_cores = parallel::detectCores() - 1L,
-  seed = as.numeric(Sys.time()),
+  n_cores = 1,
+  seed = 1,
   verbose = TRUE
 )
 }
@@ -42,12 +42,16 @@ E.g. providing \code{c(2, 1)} calculates the difference between cohort \code{2} 
 If \code{NULL}, no subtractions are performed, Default: \code{NULL}}
 
 \item{n_mcmc_iterations}{A positive integer for the number of MCMC iterations,
-see Details, Default: \code{10000}}
+see Details, Default: \code{10000}.
+If \code{n_mcmc_iterations} is present in \code{.GlobalEnv} and \code{missing(n_mcmc_iterations)},
+the globally available value will be used.}
 
-\item{n_cores}{A positive integer for the number of cores for the parallelization,
-Default: \code{parallel::detectCores() - 1L}}
+\item{n_cores}{Argument is deprecated and does nothing as of version 0.9.3.
+A positive integer for the number of cores for the parallelization,
+Default: \code{1}}
 
-\item{seed}{A numeric for the random seed, Default: \code{as.numeric(Sys.time())}}
+\item{seed}{Argument is deprecated and does nothing as of version 0.9.3.
+A numeric for the random seed, Default: \code{1}}
 
 \item{verbose}{A logical indicating whether messages should be printed, Default: \code{TRUE}}
 }
@@ -93,8 +97,7 @@ The JAGS code for the BHM \code{"exnex_adj"} is based on the JAGS code for \code
    scenario_list      = trial_data,
    target_rates       = rep(0.5, 3),
    calc_differences   = matrix(c(3, 2, 1, 1), ncol = 2),
-   n_mcmc_iterations  = 100,
-   n_cores            = 1L)
+   n_mcmc_iterations  = 100)
 }
 \references{
 Berry, Scott M., et al. "Bayesian hierarchical modeling of patient subpopulations:
@@ -111,7 +114,6 @@ using Gibbs sampling."
 Vol. 124. No. 125.10. 2003.
 }
 \seealso{
-\code{\link[parallel]{detectCores}}
 \code{\link[bhmbasket]{simulateScenarios}}
 \code{\link[bhmbasket]{createTrial}}
 \code{\link[bhmbasket]{getPriorParameters}}

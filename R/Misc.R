@@ -4,7 +4,7 @@ utils::globalVariables("k")
 #' @title logit
 #' @description This function returns the logit of the input argument.
 #' @param p A numeric in (0, 1)
-#' @details This function is a shorthand for `stats::binomial()$linkfun`
+#' @details This function is an alias for `stats::binomial()$linkfun`
 #' @return logit of p
 #' @rdname logit
 #' @author Stephan Wojciekowski
@@ -28,7 +28,7 @@ logit <- function (p) {
 #' @title invLogit
 #' @description This function returns the inverse logit of the input argument.
 #' @param theta A numeric
-#' @details This function is a shorthand for `stats::binomial()$linkinv`
+#' @details This function is an alias for `stats::binomial()$linkinv`
 #' @return Inverse logit of theta
 #' @rdname invlogit
 #' @author Stephan Wojciekowski

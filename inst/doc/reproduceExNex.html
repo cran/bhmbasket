@@ -12,11 +12,10 @@
 
 <meta name="author" content="Stephan Wojciekowski" />
 
-<meta name="date" content="2021-04-07" />
+<meta name="date" content="2021-10-11" />
 
-<title>Reproducing Parts of Neuenschwander et al. (2016)</title>
+<title>Reproducing Parts of Neuenschwander et al. (2016)</title>
 
-<script src="data:application/javascript;base64,Ly8gUGFuZG9jIDIuOSBhZGRzIGF0dHJpYnV0ZXMgb24gYm90aCBoZWFkZXIgYW5kIGRpdi4gV2UgcmVtb3ZlIHRoZSBmb3JtZXIgKHRvCi8vIGJlIGNvbXBhdGlibGUgd2l0aCB0aGUgYmVoYXZpb3Igb2YgUGFuZG9jIDwgMi44KS4KZG9jdW1lbnQuYWRkRXZlbnRMaXN0ZW5lcignRE9NQ29udGVudExvYWRlZCcsIGZ1bmN0aW9uKGUpIHsKICB2YXIgaHMgPSBkb2N1bWVudC5xdWVyeVNlbGVjdG9yQWxsKCJkaXYuc2VjdGlvbltjbGFzcyo9J2xldmVsJ10gPiA6Zmlyc3QtY2hpbGQiKTsKICB2YXIgaSwgaCwgYTsKICBmb3IgKGkgPSAwOyBpIDwgaHMubGVuZ3RoOyBpKyspIHsKICAgIGggPSBoc1tpXTsKICAgIGlmICghL15oWzEtNl0kL2kudGVzdChoLnRhZ05hbWUpKSBjb250aW51ZTsgIC8vIGl0IHNob3VsZCBiZSBhIGhlYWRlciBoMS1oNgogICAgYSA9IGguYXR0cmlidXRlczsKICAgIHdoaWxlIChhLmxlbmd0aCA+IDApIGgucmVtb3ZlQXR0cmlidXRlKGFbMF0ubmFtZSk7CiAgfQp9KTsK"></script>
 
 <style type="text/css">
   code{white-space: pre-wrap;}
@@ -28,70 +27,50 @@
     </style>
 
 
-<style type="text/css">code{white-space: pre;}</style>
-<style type="text/css" data-origin="pandoc">
-pre > code.sourceCode { white-space: pre; position: relative; }
-pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
-pre > code.sourceCode > span:empty { height: 1.2em; }
-code.sourceCode > span { color: inherit; text-decoration: inherit; }
-div.sourceCode { margin: 1em 0; }
-pre.sourceCode { margin: 0; }
-@media screen {
-div.sourceCode { overflow: auto; }
-}
-@media print {
-pre > code.sourceCode { white-space: pre-wrap; }
-pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
-}
-pre.numberSource code
-  { counter-reset: source-line 0; }
-pre.numberSource code > span
-  { position: relative; left: -4em; counter-increment: source-line; }
-pre.numberSource code > span > a:first-child::before
-  { content: counter(source-line);
-    position: relative; left: -1em; text-align: right; vertical-align: baseline;
-    border: none; display: inline-block;
-    -webkit-touch-callout: none; -webkit-user-select: none;
-    -khtml-user-select: none; -moz-user-select: none;
-    -ms-user-select: none; user-select: none;
-    padding: 0 4px; width: 4em;
-    color: #aaaaaa;
+<style type="text/css">
+  code {
+    white-space: pre;
   }
-pre.numberSource { margin-left: 3em; border-left: 1px solid #aaaaaa;  padding-left: 4px; }
-div.sourceCode
-  {   }
-@media screen {
-pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
-}
-code span.al { color: #ff0000; font-weight: bold; } /* Alert */
-code span.an { color: #60a0b0; font-weight: bold; font-style: italic; } /* Annotation */
-code span.at { color: #7d9029; } /* Attribute */
-code span.bn { color: #40a070; } /* BaseN */
-code span.bu { } /* BuiltIn */
-code span.cf { color: #007020; font-weight: bold; } /* ControlFlow */
-code span.ch { color: #4070a0; } /* Char */
-code span.cn { color: #880000; } /* Constant */
-code span.co { color: #60a0b0; font-style: italic; } /* Comment */
-code span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } /* CommentVar */
-code span.do { color: #ba2121; font-style: italic; } /* Documentation */
-code span.dt { color: #902000; } /* DataType */
-code span.dv { color: #40a070; } /* DecVal */
-code span.er { color: #ff0000; font-weight: bold; } /* Error */
-code span.ex { } /* Extension */
-code span.fl { color: #40a070; } /* Float */
-code span.fu { color: #06287e; } /* Function */
-code span.im { } /* Import */
-code span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Information */
-code span.kw { color: #007020; font-weight: bold; } /* Keyword */
-code span.op { color: #666666; } /* Operator */
-code span.ot { color: #007020; } /* Other */
-code span.pp { color: #bc7a00; } /* Preprocessor */
-code span.sc { color: #4070a0; } /* SpecialChar */
-code span.ss { color: #bb6688; } /* SpecialString */
-code span.st { color: #4070a0; } /* String */
-code span.va { color: #19177c; } /* Variable */
-code span.vs { color: #4070a0; } /* VerbatimString */
-code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warning */
+  .sourceCode {
+    overflow: visible;
+  }
+</style>
+<style type="text/css" data-origin="pandoc">
+div.sourceCode { overflow-x: auto; }
+table.sourceCode, tr.sourceCode, td.lineNumbers, td.sourceCode {
+  margin: 0; padding: 0; vertical-align: baseline; border: none; }
+table.sourceCode { width: 100%; line-height: 100%; }
+td.lineNumbers { text-align: right; padding-right: 4px; padding-left: 4px; color: #aaaaaa; border-right: 1px solid #aaaaaa; }
+td.sourceCode { padding-left: 5px; }
+code > span.kw { color: #007020; font-weight: bold; } /* Keyword */
+code > span.dt { color: #902000; } /* DataType */
+code > span.dv { color: #40a070; } /* DecVal */
+code > span.bn { color: #40a070; } /* BaseN */
+code > span.fl { color: #40a070; } /* Float */
+code > span.ch { color: #4070a0; } /* Char */
+code > span.st { color: #4070a0; } /* String */
+code > span.co { color: #60a0b0; font-style: italic; } /* Comment */
+code > span.ot { color: #007020; } /* Other */
+code > span.al { color: #ff0000; font-weight: bold; } /* Alert */
+code > span.fu { color: #06287e; } /* Function */
+code > span.er { color: #ff0000; font-weight: bold; } /* Error */
+code > span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warning */
+code > span.cn { color: #880000; } /* Constant */
+code > span.sc { color: #4070a0; } /* SpecialChar */
+code > span.vs { color: #4070a0; } /* VerbatimString */
+code > span.ss { color: #bb6688; } /* SpecialString */
+code > span.im { } /* Import */
+code > span.va { color: #19177c; } /* Variable */
+code > span.cf { color: #007020; font-weight: bold; } /* ControlFlow */
+code > span.op { color: #666666; } /* Operator */
+code > span.bu { } /* BuiltIn */
+code > span.ex { } /* Extension */
+code > span.pp { color: #bc7a00; } /* Preprocessor */
+code > span.at { color: #7d9029; } /* Attribute */
+code > span.do { color: #ba2121; font-style: italic; } /* Documentation */
+code > span.an { color: #60a0b0; font-weight: bold; font-style: italic; } /* Annotation */
+code > span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } /* CommentVar */
+code > span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Information */
 
 </style>
 <script>
@@ -118,30 +97,8 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 
 
 
-<style type="text/css">
-/* for pandoc --citeproc since 2.11 */
-div.csl-bib-body { }
-div.csl-entry {
-  clear: both;
-}
-.hanging div.csl-entry {
-  margin-left:2em;
-  text-indent:-2em;
-}
-div.csl-left-margin {
-  min-width:2em;
-  float:left;
-}
-div.csl-right-inline {
-  margin-left:2em;
-  padding-left:1em;
-}
-div.csl-indent {
-  margin-left: 2em;
-}
-</style>
 
-<link rel="stylesheet" href="data:text/css,body%20%7B%0Abackground%2Dcolor%3A%20%23fff%3B%0Amargin%3A%201em%20auto%3B%0Amax%2Dwidth%3A%20700px%3B%0Aoverflow%3A%20visible%3B%0Apadding%2Dleft%3A%202em%3B%0Apadding%2Dright%3A%202em%3B%0Afont%2Dfamily%3A%20%22Open%20Sans%22%2C%20%22Helvetica%20Neue%22%2C%20Helvetica%2C%20Arial%2C%20sans%2Dserif%3B%0Afont%2Dsize%3A%2014px%3B%0Aline%2Dheight%3A%201%2E35%3B%0A%7D%0A%23TOC%20%7B%0Aclear%3A%20both%3B%0Amargin%3A%200%200%2010px%2010px%3B%0Apadding%3A%204px%3B%0Awidth%3A%20400px%3B%0Aborder%3A%201px%20solid%20%23CCCCCC%3B%0Aborder%2Dradius%3A%205px%3B%0Abackground%2Dcolor%3A%20%23f6f6f6%3B%0Afont%2Dsize%3A%2013px%3B%0Aline%2Dheight%3A%201%2E3%3B%0A%7D%0A%23TOC%20%2Etoctitle%20%7B%0Afont%2Dweight%3A%20bold%3B%0Afont%2Dsize%3A%2015px%3B%0Amargin%2Dleft%3A%205px%3B%0A%7D%0A%23TOC%20ul%20%7B%0Apadding%2Dleft%3A%2040px%3B%0Amargin%2Dleft%3A%20%2D1%2E5em%3B%0Amargin%2Dtop%3A%205px%3B%0Amargin%2Dbottom%3A%205px%3B%0A%7D%0A%23TOC%20ul%20ul%20%7B%0Amargin%2Dleft%3A%20%2D2em%3B%0A%7D%0A%23TOC%20li%20%7B%0Aline%2Dheight%3A%2016px%3B%0A%7D%0Atable%20%7B%0Amargin%3A%201em%20auto%3B%0Aborder%2Dwidth%3A%201px%3B%0Aborder%2Dcolor%3A%20%23DDDDDD%3B%0Aborder%2Dstyle%3A%20outset%3B%0Aborder%2Dcollapse%3A%20collapse%3B%0A%7D%0Atable%20th%20%7B%0Aborder%2Dwidth%3A%202px%3B%0Apadding%3A%205px%3B%0Aborder%2Dstyle%3A%20inset%3B%0A%7D%0Atable%20td%20%7B%0Aborder%2Dwidth%3A%201px%3B%0Aborder%2Dstyle%3A%20inset%3B%0Aline%2Dheight%3A%2018px%3B%0Apadding%3A%205px%205px%3B%0A%7D%0Atable%2C%20table%20th%2C%20table%20td%20%7B%0Aborder%2Dleft%2Dstyle%3A%20none%3B%0Aborder%2Dright%2Dstyle%3A%20none%3B%0A%7D%0Atable%20thead%2C%20table%20tr%2Eeven%20%7B%0Abackground%2Dcolor%3A%20%23f7f7f7%3B%0A%7D%0Ap%20%7B%0Amargin%3A%200%2E5em%200%3B%0A%7D%0Ablockquote%20%7B%0Abackground%2Dcolor%3A%20%23f6f6f6%3B%0Apadding%3A%200%2E25em%200%2E75em%3B%0A%7D%0Ahr%20%7B%0Aborder%2Dstyle%3A%20solid%3B%0Aborder%3A%20none%3B%0Aborder%2Dtop%3A%201px%20solid%20%23777%3B%0Amargin%3A%2028px%200%3B%0A%7D%0Adl%20%7B%0Amargin%2Dleft%3A%200%3B%0A%7D%0Adl%20dd%20%7B%0Amargin%2Dbottom%3A%2013px%3B%0Amargin%2Dleft%3A%2013px%3B%0A%7D%0Adl%20dt%20%7B%0Afont%2Dweight%3A%20bold%3B%0A%7D%0Aul%20%7B%0Amargin%2Dtop%3A%200%3B%0A%7D%0Aul%20li%20%7B%0Alist%2Dstyle%3A%20circle%20outside%3B%0A%7D%0Aul%20ul%20%7B%0Amargin%2Dbottom%3A%200%3B%0A%7D%0Apre%2C%20code%20%7B%0Abackground%2Dcolor%3A%20%23f7f7f7%3B%0Aborder%2Dradius%3A%203px%3B%0Acolor%3A%20%23333%3B%0Awhite%2Dspace%3A%20pre%2Dwrap%3B%20%0A%7D%0Apre%20%7B%0Aborder%2Dradius%3A%203px%3B%0Amargin%3A%205px%200px%2010px%200px%3B%0Apadding%3A%2010px%3B%0A%7D%0Apre%3Anot%28%5Bclass%5D%29%20%7B%0Abackground%2Dcolor%3A%20%23f7f7f7%3B%0A%7D%0Acode%20%7B%0Afont%2Dfamily%3A%20Consolas%2C%20Monaco%2C%20%27Courier%20New%27%2C%20monospace%3B%0Afont%2Dsize%3A%2085%25%3B%0A%7D%0Ap%20%3E%20code%2C%20li%20%3E%20code%20%7B%0Apadding%3A%202px%200px%3B%0A%7D%0Adiv%2Efigure%20%7B%0Atext%2Dalign%3A%20center%3B%0A%7D%0Aimg%20%7B%0Abackground%2Dcolor%3A%20%23FFFFFF%3B%0Apadding%3A%202px%3B%0Aborder%3A%201px%20solid%20%23DDDDDD%3B%0Aborder%2Dradius%3A%203px%3B%0Aborder%3A%201px%20solid%20%23CCCCCC%3B%0Amargin%3A%200%205px%3B%0A%7D%0Ah1%20%7B%0Amargin%2Dtop%3A%200%3B%0Afont%2Dsize%3A%2035px%3B%0Aline%2Dheight%3A%2040px%3B%0A%7D%0Ah2%20%7B%0Aborder%2Dbottom%3A%204px%20solid%20%23f7f7f7%3B%0Apadding%2Dtop%3A%2010px%3B%0Apadding%2Dbottom%3A%202px%3B%0Afont%2Dsize%3A%20145%25%3B%0A%7D%0Ah3%20%7B%0Aborder%2Dbottom%3A%202px%20solid%20%23f7f7f7%3B%0Apadding%2Dtop%3A%2010px%3B%0Afont%2Dsize%3A%20120%25%3B%0A%7D%0Ah4%20%7B%0Aborder%2Dbottom%3A%201px%20solid%20%23f7f7f7%3B%0Amargin%2Dleft%3A%208px%3B%0Afont%2Dsize%3A%20105%25%3B%0A%7D%0Ah5%2C%20h6%20%7B%0Aborder%2Dbottom%3A%201px%20solid%20%23ccc%3B%0Afont%2Dsize%3A%20105%25%3B%0A%7D%0Aa%20%7B%0Acolor%3A%20%230033dd%3B%0Atext%2Ddecoration%3A%20none%3B%0A%7D%0Aa%3Ahover%20%7B%0Acolor%3A%20%236666ff%3B%20%7D%0Aa%3Avisited%20%7B%0Acolor%3A%20%23800080%3B%20%7D%0Aa%3Avisited%3Ahover%20%7B%0Acolor%3A%20%23BB00BB%3B%20%7D%0Aa%5Bhref%5E%3D%22http%3A%22%5D%20%7B%0Atext%2Ddecoration%3A%20underline%3B%20%7D%0Aa%5Bhref%5E%3D%22https%3A%22%5D%20%7B%0Atext%2Ddecoration%3A%20underline%3B%20%7D%0A%0Acode%20%3E%20span%2Ekw%20%7B%20color%3A%20%23555%3B%20font%2Dweight%3A%20bold%3B%20%7D%20%0Acode%20%3E%20span%2Edt%20%7B%20color%3A%20%23902000%3B%20%7D%20%0Acode%20%3E%20span%2Edv%20%7B%20color%3A%20%2340a070%3B%20%7D%20%0Acode%20%3E%20span%2Ebn%20%7B%20color%3A%20%23d14%3B%20%7D%20%0Acode%20%3E%20span%2Efl%20%7B%20color%3A%20%23d14%3B%20%7D%20%0Acode%20%3E%20span%2Ech%20%7B%20color%3A%20%23d14%3B%20%7D%20%0Acode%20%3E%20span%2Est%20%7B%20color%3A%20%23d14%3B%20%7D%20%0Acode%20%3E%20span%2Eco%20%7B%20color%3A%20%23888888%3B%20font%2Dstyle%3A%20italic%3B%20%7D%20%0Acode%20%3E%20span%2Eot%20%7B%20color%3A%20%23007020%3B%20%7D%20%0Acode%20%3E%20span%2Eal%20%7B%20color%3A%20%23ff0000%3B%20font%2Dweight%3A%20bold%3B%20%7D%20%0Acode%20%3E%20span%2Efu%20%7B%20color%3A%20%23900%3B%20font%2Dweight%3A%20bold%3B%20%7D%20%0Acode%20%3E%20span%2Eer%20%7B%20color%3A%20%23a61717%3B%20background%2Dcolor%3A%20%23e3d2d2%3B%20%7D%20%0A" type="text/css" />
+<link href="data:text/css;charset=utf-8,body%20%7B%0Abackground%2Dcolor%3A%20%23fff%3B%0Amargin%3A%201em%20auto%3B%0Amax%2Dwidth%3A%20700px%3B%0Aoverflow%3A%20visible%3B%0Apadding%2Dleft%3A%202em%3B%0Apadding%2Dright%3A%202em%3B%0Afont%2Dfamily%3A%20%22Open%20Sans%22%2C%20%22Helvetica%20Neue%22%2C%20Helvetica%2C%20Arial%2C%20sans%2Dserif%3B%0Afont%2Dsize%3A%2014px%3B%0Aline%2Dheight%3A%201%2E35%3B%0A%7D%0A%23TOC%20%7B%0Aclear%3A%20both%3B%0Amargin%3A%200%200%2010px%2010px%3B%0Apadding%3A%204px%3B%0Awidth%3A%20400px%3B%0Aborder%3A%201px%20solid%20%23CCCCCC%3B%0Aborder%2Dradius%3A%205px%3B%0Abackground%2Dcolor%3A%20%23f6f6f6%3B%0Afont%2Dsize%3A%2013px%3B%0Aline%2Dheight%3A%201%2E3%3B%0A%7D%0A%23TOC%20%2Etoctitle%20%7B%0Afont%2Dweight%3A%20bold%3B%0Afont%2Dsize%3A%2015px%3B%0Amargin%2Dleft%3A%205px%3B%0A%7D%0A%23TOC%20ul%20%7B%0Apadding%2Dleft%3A%2040px%3B%0Amargin%2Dleft%3A%20%2D1%2E5em%3B%0Amargin%2Dtop%3A%205px%3B%0Amargin%2Dbottom%3A%205px%3B%0A%7D%0A%23TOC%20ul%20ul%20%7B%0Amargin%2Dleft%3A%20%2D2em%3B%0A%7D%0A%23TOC%20li%20%7B%0Aline%2Dheight%3A%2016px%3B%0A%7D%0Atable%20%7B%0Amargin%3A%201em%20auto%3B%0Aborder%2Dwidth%3A%201px%3B%0Aborder%2Dcolor%3A%20%23DDDDDD%3B%0Aborder%2Dstyle%3A%20outset%3B%0Aborder%2Dcollapse%3A%20collapse%3B%0A%7D%0Atable%20th%20%7B%0Aborder%2Dwidth%3A%202px%3B%0Apadding%3A%205px%3B%0Aborder%2Dstyle%3A%20inset%3B%0A%7D%0Atable%20td%20%7B%0Aborder%2Dwidth%3A%201px%3B%0Aborder%2Dstyle%3A%20inset%3B%0Aline%2Dheight%3A%2018px%3B%0Apadding%3A%205px%205px%3B%0A%7D%0Atable%2C%20table%20th%2C%20table%20td%20%7B%0Aborder%2Dleft%2Dstyle%3A%20none%3B%0Aborder%2Dright%2Dstyle%3A%20none%3B%0A%7D%0Atable%20thead%2C%20table%20tr%2Eeven%20%7B%0Abackground%2Dcolor%3A%20%23f7f7f7%3B%0A%7D%0Ap%20%7B%0Amargin%3A%200%2E5em%200%3B%0A%7D%0Ablockquote%20%7B%0Abackground%2Dcolor%3A%20%23f6f6f6%3B%0Apadding%3A%200%2E25em%200%2E75em%3B%0A%7D%0Ahr%20%7B%0Aborder%2Dstyle%3A%20solid%3B%0Aborder%3A%20none%3B%0Aborder%2Dtop%3A%201px%20solid%20%23777%3B%0Amargin%3A%2028px%200%3B%0A%7D%0Adl%20%7B%0Amargin%2Dleft%3A%200%3B%0A%7D%0Adl%20dd%20%7B%0Amargin%2Dbottom%3A%2013px%3B%0Amargin%2Dleft%3A%2013px%3B%0A%7D%0Adl%20dt%20%7B%0Afont%2Dweight%3A%20bold%3B%0A%7D%0Aul%20%7B%0Amargin%2Dtop%3A%200%3B%0A%7D%0Aul%20li%20%7B%0Alist%2Dstyle%3A%20circle%20outside%3B%0A%7D%0Aul%20ul%20%7B%0Amargin%2Dbottom%3A%200%3B%0A%7D%0Apre%2C%20code%20%7B%0Abackground%2Dcolor%3A%20%23f7f7f7%3B%0Aborder%2Dradius%3A%203px%3B%0Acolor%3A%20%23333%3B%0Awhite%2Dspace%3A%20pre%2Dwrap%3B%20%0A%7D%0Apre%20%7B%0Aborder%2Dradius%3A%203px%3B%0Amargin%3A%205px%200px%2010px%200px%3B%0Apadding%3A%2010px%3B%0A%7D%0Apre%3Anot%28%5Bclass%5D%29%20%7B%0Abackground%2Dcolor%3A%20%23f7f7f7%3B%0A%7D%0Acode%20%7B%0Afont%2Dfamily%3A%20Consolas%2C%20Monaco%2C%20%27Courier%20New%27%2C%20monospace%3B%0Afont%2Dsize%3A%2085%25%3B%0A%7D%0Ap%20%3E%20code%2C%20li%20%3E%20code%20%7B%0Apadding%3A%202px%200px%3B%0A%7D%0Adiv%2Efigure%20%7B%0Atext%2Dalign%3A%20center%3B%0A%7D%0Aimg%20%7B%0Abackground%2Dcolor%3A%20%23FFFFFF%3B%0Apadding%3A%202px%3B%0Aborder%3A%201px%20solid%20%23DDDDDD%3B%0Aborder%2Dradius%3A%203px%3B%0Aborder%3A%201px%20solid%20%23CCCCCC%3B%0Amargin%3A%200%205px%3B%0A%7D%0Ah1%20%7B%0Amargin%2Dtop%3A%200%3B%0Afont%2Dsize%3A%2035px%3B%0Aline%2Dheight%3A%2040px%3B%0A%7D%0Ah2%20%7B%0Aborder%2Dbottom%3A%204px%20solid%20%23f7f7f7%3B%0Apadding%2Dtop%3A%2010px%3B%0Apadding%2Dbottom%3A%202px%3B%0Afont%2Dsize%3A%20145%25%3B%0A%7D%0Ah3%20%7B%0Aborder%2Dbottom%3A%202px%20solid%20%23f7f7f7%3B%0Apadding%2Dtop%3A%2010px%3B%0Afont%2Dsize%3A%20120%25%3B%0A%7D%0Ah4%20%7B%0Aborder%2Dbottom%3A%201px%20solid%20%23f7f7f7%3B%0Amargin%2Dleft%3A%208px%3B%0Afont%2Dsize%3A%20105%25%3B%0A%7D%0Ah5%2C%20h6%20%7B%0Aborder%2Dbottom%3A%201px%20solid%20%23ccc%3B%0Afont%2Dsize%3A%20105%25%3B%0A%7D%0Aa%20%7B%0Acolor%3A%20%230033dd%3B%0Atext%2Ddecoration%3A%20none%3B%0A%7D%0Aa%3Ahover%20%7B%0Acolor%3A%20%236666ff%3B%20%7D%0Aa%3Avisited%20%7B%0Acolor%3A%20%23800080%3B%20%7D%0Aa%3Avisited%3Ahover%20%7B%0Acolor%3A%20%23BB00BB%3B%20%7D%0Aa%5Bhref%5E%3D%22http%3A%22%5D%20%7B%0Atext%2Ddecoration%3A%20underline%3B%20%7D%0Aa%5Bhref%5E%3D%22https%3A%22%5D%20%7B%0Atext%2Ddecoration%3A%20underline%3B%20%7D%0A%0Acode%20%3E%20span%2Ekw%20%7B%20color%3A%20%23555%3B%20font%2Dweight%3A%20bold%3B%20%7D%20%0Acode%20%3E%20span%2Edt%20%7B%20color%3A%20%23902000%3B%20%7D%20%0Acode%20%3E%20span%2Edv%20%7B%20color%3A%20%2340a070%3B%20%7D%20%0Acode%20%3E%20span%2Ebn%20%7B%20color%3A%20%23d14%3B%20%7D%20%0Acode%20%3E%20span%2Efl%20%7B%20color%3A%20%23d14%3B%20%7D%20%0Acode%20%3E%20span%2Ech%20%7B%20color%3A%20%23d14%3B%20%7D%20%0Acode%20%3E%20span%2Est%20%7B%20color%3A%20%23d14%3B%20%7D%20%0Acode%20%3E%20span%2Eco%20%7B%20color%3A%20%23888888%3B%20font%2Dstyle%3A%20italic%3B%20%7D%20%0Acode%20%3E%20span%2Eot%20%7B%20color%3A%20%23007020%3B%20%7D%20%0Acode%20%3E%20span%2Eal%20%7B%20color%3A%20%23ff0000%3B%20font%2Dweight%3A%20bold%3B%20%7D%20%0Acode%20%3E%20span%2Efu%20%7B%20color%3A%20%23900%3B%20font%2Dweight%3A%20bold%3B%20%7D%20%0Acode%20%3E%20span%2Eer%20%7B%20color%3A%20%23a61717%3B%20background%2Dcolor%3A%20%23e3d2d2%3B%20%7D%20%0A" rel="stylesheet" type="text/css" />
 
 
 
@@ -153,74 +110,74 @@ div.csl-indent {
 
 
 
-<h1 class="title toc-ignore">Reproducing Parts of Neuenschwander et al. (2016)</h1>
+<h1 class="title toc-ignore">Reproducing Parts of Neuenschwander et al. (2016)</h1>
 <h4 class="author">Stephan Wojciekowski</h4>
-<h4 class="date">April 07, 2021</h4>
+<h4 class="date">October 11, 2021</h4>
 
 
 
-<p>This vignette demonstrates how to use the R package <code>bhmbasket</code> to reproduce parts of “Robust exchangeability designs for early phase clinical trials with multiple strata” by <span class="citation">Neuenschwander et al. (2016)</span>.</p>
-<p>Two examples are shown in this vignette: the analysis of a basket trial’s outcome with the ExNex approach, and the assessment of the operating characteristics of a planned basket trial under several scenarios.</p>
-<div class="sourceCode" id="cb1"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(bhmbasket)</span>
-<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a>rng_seed <span class="ot">&lt;-</span> <span class="dv">123</span></span>
-<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a><span class="fu">set.seed</span>(rng_seed)</span></code></pre></div>
+<p>This vignette demonstrates how to use the R package <code>bhmbasket</code> to reproduce parts of &quot;Robust exchangeability designs for early phase clinical trials with multiple strata&quot; by <span class="citation">Neuenschwander et al. (2016)</span>.</p>
+<p>Two examples are shown in this vignette: the analysis of a basket trial's outcome with the ExNex approach, and the assessment of the operating characteristics of a planned basket trial under several scenarios.</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">library</span>(bhmbasket)
+
+rng_seed &lt;-<span class="st"> </span><span class="dv">123</span>
+<span class="kw">set.seed</span>(rng_seed)</code></pre></div>
 <div id="analysis-of-a-basket-trials-outcome" class="section level2">
-<h2>Analysis of a Basket Trial’s Outcome</h2>
+<h2>Analysis of a Basket Trial's Outcome</h2>
 <p>Section 2 of <span class="citation">Neuenschwander et al. (2016)</span> discusses the application of the ExNex approach to the results of the phase II sarcoma basket trial by <span class="citation">Chugh et al. (2009)</span>. The prior specifications and the estimated response rates per cohort are shown in the Appendix of <span class="citation">Neuenschwander et al. (2016)</span>.</p>
 <div id="creating-the-trial" class="section level3">
 <h3>Creating the trial</h3>
 <p>A single trial with a given outcome can be created with the function <code>createTrial()</code>, which takes as arguments the number of subjects and the number of responders of the trial. The outcome of the basket trial by <span class="citation">Chugh et al. (2009)</span> can be set up as follows:</p>
-<div class="sourceCode" id="cb2"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>chugh_trial <span class="ot">&lt;-</span> <span class="fu">createTrial</span>(</span>
-<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>  <span class="at">n_subjects   =</span> <span class="fu">c</span>(<span class="dv">15</span>, <span class="dv">13</span>, <span class="dv">12</span>, <span class="dv">28</span>, <span class="dv">29</span>, <span class="dv">29</span>, <span class="dv">26</span>, <span class="dv">5</span>, <span class="dv">2</span>, <span class="dv">20</span>),</span>
-<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">n_responders =</span> <span class="fu">c</span>(<span class="dv">2</span>, <span class="dv">0</span>, <span class="dv">1</span>, <span class="dv">6</span>, <span class="dv">7</span>, <span class="dv">3</span>, <span class="dv">5</span>, <span class="dv">1</span>, <span class="dv">0</span>, <span class="dv">3</span>))</span></code></pre></div>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">chugh_trial &lt;-<span class="st"> </span><span class="kw">createTrial</span>(
+  <span class="dt">n_subjects   =</span> <span class="kw">c</span>(<span class="dv">15</span>, <span class="dv">13</span>, <span class="dv">12</span>, <span class="dv">28</span>, <span class="dv">29</span>, <span class="dv">29</span>, <span class="dv">26</span>, <span class="dv">5</span>, <span class="dv">2</span>, <span class="dv">20</span>),
+  <span class="dt">n_responders =</span> <span class="kw">c</span>(<span class="dv">2</span>, <span class="dv">0</span>, <span class="dv">1</span>, <span class="dv">6</span>, <span class="dv">7</span>, <span class="dv">3</span>, <span class="dv">5</span>, <span class="dv">1</span>, <span class="dv">0</span>, <span class="dv">3</span>))</code></pre></div>
 </div>
 <div id="running-the-model" class="section level3">
 <h3>Running the model</h3>
 <p>The analysis of the trial is handled by the function <code>performAnalyses()</code>, to which to the <code>chugh_trial</code>, the name of the method <code>&quot;exnex&quot;</code>, and the prior parameters as shown in Appendix 5.3 of <span class="citation">Neuenschwander et al. (2016)</span> are provided:</p>
-<div class="sourceCode" id="cb3"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a>chugh_prior_parameters <span class="ot">&lt;-</span> <span class="fu">setPriorParametersExNex</span>(</span>
-<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>  <span class="at">mu_mean   =</span> <span class="fu">c</span>(<span class="sc">-</span><span class="fl">1.735</span>, <span class="fl">0.847</span>),</span>
-<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">mu_sd     =</span> <span class="fu">c</span>(<span class="fl">0.146</span>, <span class="fl">0.266</span>)<span class="sc">^-</span><span class="fl">0.5</span>,</span>
-<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">tau_scale =</span> <span class="dv">1</span>,</span>
-<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a>  <span class="at">mu_j      =</span> <span class="fu">rep</span>(<span class="sc">-</span><span class="fl">1.734</span>, <span class="dv">10</span>),</span>
-<span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a>  <span class="at">tau_j     =</span> <span class="fu">rep</span>(<span class="fl">0.128</span><span class="sc">^-</span><span class="fl">0.5</span>, <span class="dv">10</span>),</span>
-<span id="cb3-7"><a href="#cb3-7" aria-hidden="true" tabindex="-1"></a>  <span class="at">w_j       =</span> <span class="fu">c</span>(<span class="fl">0.5</span>, <span class="dv">0</span>, <span class="fl">0.5</span>))</span>
-<span id="cb3-8"><a href="#cb3-8" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb3-9"><a href="#cb3-9" aria-hidden="true" tabindex="-1"></a><span class="cf">if</span> (<span class="fu">file.exists</span>(<span class="st">&quot;chugh_analysis.rds&quot;</span>)) {</span>
-<span id="cb3-10"><a href="#cb3-10" aria-hidden="true" tabindex="-1"></a>  </span>
-<span id="cb3-11"><a href="#cb3-11" aria-hidden="true" tabindex="-1"></a>  chugh_analysis <span class="ot">&lt;-</span> <span class="fu">readRDS</span>(<span class="st">&quot;chugh_analysis.rds&quot;</span>)</span>
-<span id="cb3-12"><a href="#cb3-12" aria-hidden="true" tabindex="-1"></a>  </span>
-<span id="cb3-13"><a href="#cb3-13" aria-hidden="true" tabindex="-1"></a>} <span class="cf">else</span> {</span>
-<span id="cb3-14"><a href="#cb3-14" aria-hidden="true" tabindex="-1"></a>  </span>
-<span id="cb3-15"><a href="#cb3-15" aria-hidden="true" tabindex="-1"></a>  chugh_analysis <span class="ot">&lt;-</span> <span class="fu">performAnalyses</span>(</span>
-<span id="cb3-16"><a href="#cb3-16" aria-hidden="true" tabindex="-1"></a>  <span class="at">scenario_list         =</span> chugh_trial,</span>
-<span id="cb3-17"><a href="#cb3-17" aria-hidden="true" tabindex="-1"></a>  <span class="at">method_names          =</span> <span class="st">&quot;exnex&quot;</span>,</span>
-<span id="cb3-18"><a href="#cb3-18" aria-hidden="true" tabindex="-1"></a>  <span class="at">prior_parameters_list =</span> chugh_prior_parameters,</span>
-<span id="cb3-19"><a href="#cb3-19" aria-hidden="true" tabindex="-1"></a>  <span class="at">seed                  =</span> rng_seed,</span>
-<span id="cb3-20"><a href="#cb3-20" aria-hidden="true" tabindex="-1"></a>  <span class="at">n_mcmc_iterations     =</span> <span class="fl">5e4</span>,</span>
-<span id="cb3-21"><a href="#cb3-21" aria-hidden="true" tabindex="-1"></a>  <span class="at">n_cores               =</span> 2L,</span>
-<span id="cb3-22"><a href="#cb3-22" aria-hidden="true" tabindex="-1"></a>  <span class="at">verbose               =</span> <span class="cn">FALSE</span>)</span>
-<span id="cb3-23"><a href="#cb3-23" aria-hidden="true" tabindex="-1"></a>  </span>
-<span id="cb3-24"><a href="#cb3-24" aria-hidden="true" tabindex="-1"></a>  <span class="fu">saveRDS</span>(chugh_analysis, <span class="st">&quot;chugh_analysis.rds&quot;</span>)</span>
-<span id="cb3-25"><a href="#cb3-25" aria-hidden="true" tabindex="-1"></a>  </span>
-<span id="cb3-26"><a href="#cb3-26" aria-hidden="true" tabindex="-1"></a>}</span></code></pre></div>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">chugh_prior_parameters &lt;-<span class="st"> </span><span class="kw">setPriorParametersExNex</span>(
+  <span class="dt">mu_mean   =</span> <span class="kw">c</span>(<span class="op">-</span><span class="fl">1.735</span>, <span class="fl">0.847</span>),
+  <span class="dt">mu_sd     =</span> <span class="kw">c</span>(<span class="fl">0.146</span>, <span class="fl">0.266</span>)<span class="op">^-</span><span class="fl">0.5</span>,
+  <span class="dt">tau_scale =</span> <span class="dv">1</span>,
+  <span class="dt">mu_j      =</span> <span class="kw">rep</span>(<span class="op">-</span><span class="fl">1.734</span>, <span class="dv">10</span>),
+  <span class="dt">tau_j     =</span> <span class="kw">rep</span>(<span class="fl">0.128</span><span class="op">^-</span><span class="fl">0.5</span>, <span class="dv">10</span>),
+  <span class="dt">w_j       =</span> <span class="kw">c</span>(<span class="fl">0.5</span>, <span class="dv">0</span>, <span class="fl">0.5</span>))
+
+<span class="cf">if</span> (<span class="kw">file.exists</span>(<span class="st">&quot;chugh_analysis.rds&quot;</span>)) {
+  
+  chugh_analysis &lt;-<span class="st"> </span><span class="kw">readRDS</span>(<span class="st">&quot;chugh_analysis.rds&quot;</span>)
+  
+} <span class="cf">else</span> {
+  
+  chugh_analysis &lt;-<span class="st"> </span><span class="kw">performAnalyses</span>(
+  <span class="dt">scenario_list         =</span> chugh_trial,
+  <span class="dt">method_names          =</span> <span class="st">&quot;exnex&quot;</span>,
+  <span class="dt">prior_parameters_list =</span> chugh_prior_parameters,
+  <span class="dt">seed                  =</span> rng_seed,
+  <span class="dt">n_mcmc_iterations     =</span> <span class="fl">5e4</span>,
+  <span class="dt">n_cores               =</span> 2L,
+  <span class="dt">verbose               =</span> <span class="ot">FALSE</span>)
+  
+  <span class="kw">saveRDS</span>(chugh_analysis, <span class="st">&quot;chugh_analysis.rds&quot;</span>)
+  
+}</code></pre></div>
 </div>
 <div id="getting-the-estimates" class="section level3">
 <h3>Getting the estimates</h3>
 <p>One can use the function <code>getEstimates()</code> to get point estimates and credible intervals of the response rates:</p>
-<div class="sourceCode" id="cb4"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="fu">getEstimates</span>(<span class="at">analyses_list =</span> chugh_analysis)</span>
-<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; $exnex</span></span>
-<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;            Mean         SD         2.5%        50%     97.5%</span></span>
-<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; p_1  0.15077467 0.06293024 0.0392848259 0.14745358 0.2915622</span></span>
-<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; p_2  0.05287414 0.05895604 0.0002959401 0.02684776 0.1941751</span></span>
-<span id="cb4-6"><a href="#cb4-6" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; p_3  0.12699904 0.06781268 0.0123062080 0.12706481 0.2672502</span></span>
-<span id="cb4-7"><a href="#cb4-7" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; p_4  0.18849350 0.06009882 0.0930300121 0.18020901 0.3305355</span></span>
-<span id="cb4-8"><a href="#cb4-8" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; p_5  0.20512931 0.06550208 0.1060958755 0.19408070 0.3631065</span></span>
-<span id="cb4-9"><a href="#cb4-9" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; p_6  0.13140558 0.05094556 0.0383863302 0.13079420 0.2355352</span></span>
-<span id="cb4-10"><a href="#cb4-10" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; p_7  0.17669509 0.05732098 0.0821657158 0.17034967 0.3101239</span></span>
-<span id="cb4-11"><a href="#cb4-11" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; p_8  0.17857554 0.10398925 0.0271685311 0.16135326 0.4669779</span></span>
-<span id="cb4-12"><a href="#cb4-12" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; p_9  0.13019866 0.11375943 0.0010129288 0.12100970 0.4291611</span></span>
-<span id="cb4-13"><a href="#cb4-13" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; p_10 0.15732452 0.05807734 0.0552504578 0.15348422 0.2879676</span></span></code></pre></div>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">getEstimates</span>(<span class="dt">analyses_list =</span> chugh_analysis)
+<span class="co">#&gt; $exnex</span>
+<span class="co">#&gt;            Mean         SD         2.5%        50%     97.5%</span>
+<span class="co">#&gt; p_1  0.15077467 0.06293024 0.0392848259 0.14745358 0.2915622</span>
+<span class="co">#&gt; p_2  0.05287414 0.05895604 0.0002959401 0.02684776 0.1941751</span>
+<span class="co">#&gt; p_3  0.12699904 0.06781268 0.0123062080 0.12706481 0.2672502</span>
+<span class="co">#&gt; p_4  0.18849350 0.06009882 0.0930300121 0.18020901 0.3305355</span>
+<span class="co">#&gt; p_5  0.20512931 0.06550208 0.1060958755 0.19408070 0.3631065</span>
+<span class="co">#&gt; p_6  0.13140558 0.05094556 0.0383863302 0.13079420 0.2355352</span>
+<span class="co">#&gt; p_7  0.17669509 0.05732098 0.0821657158 0.17034967 0.3101239</span>
+<span class="co">#&gt; p_8  0.17857554 0.10398925 0.0271685311 0.16135326 0.4669779</span>
+<span class="co">#&gt; p_9  0.13019866 0.11375943 0.0010129288 0.12100970 0.4291611</span>
+<span class="co">#&gt; p_10 0.15732452 0.05807734 0.0552504578 0.15348422 0.2879676</span></code></pre></div>
 <p>By comparing these values to the respective numbers provided by <span class="citation">Neuenschwander et al. (2016)</span> in Appendix 5.3 one can see that the results are equal to the second decimal place.</p>
 </div>
 </div>
@@ -232,79 +189,79 @@ div.csl-indent {
 <!-- However, the numbers reported by @exnex2016 do not always meet this expectation (see e.g. the reported biases of Scenario 3). -->
 <div id="simulating-the-scenarios" class="section level3">
 <h3>Simulating the scenarios</h3>
-<p>The scenarios are simulated with the function <code>simulateScenarios()</code>. There are seven different scenarios presented in Table V. In this example, the Scenarios 1, 3, and 4 are reproduced. For each scenario 10000 basket trial realizations are simulated:</p>
-<div class="sourceCode" id="cb5"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a>scenarios_list <span class="ot">&lt;-</span> <span class="fu">simulateScenarios</span>(</span>
-<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a>  <span class="at">n_subjects_list     =</span> <span class="fu">list</span>(<span class="fu">c</span>(<span class="dv">20</span>, <span class="dv">20</span>, <span class="dv">10</span>, <span class="dv">10</span>),</span>
-<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a>                             <span class="fu">c</span>(<span class="dv">20</span>, <span class="dv">20</span>, <span class="dv">10</span>, <span class="dv">10</span>),</span>
-<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a>                             <span class="fu">c</span>(<span class="dv">20</span>, <span class="dv">20</span>, <span class="dv">10</span>, <span class="dv">10</span>)),</span>
-<span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a>  <span class="at">response_rates_list =</span> <span class="fu">list</span>(<span class="fu">c</span>(<span class="fl">0.1</span>, <span class="fl">0.1</span>, <span class="fl">0.1</span>, <span class="fl">0.1</span>),</span>
-<span id="cb5-6"><a href="#cb5-6" aria-hidden="true" tabindex="-1"></a>                             <span class="fu">c</span>(<span class="fl">0.1</span>, <span class="fl">0.1</span>, <span class="fl">0.3</span>, <span class="fl">0.3</span>),</span>
-<span id="cb5-7"><a href="#cb5-7" aria-hidden="true" tabindex="-1"></a>                             <span class="fu">c</span>(<span class="fl">0.1</span>, <span class="fl">0.1</span>, <span class="fl">0.1</span>, <span class="fl">0.5</span>)),</span>
-<span id="cb5-8"><a href="#cb5-8" aria-hidden="true" tabindex="-1"></a>  <span class="at">scenario_numbers    =</span> <span class="fu">c</span>(<span class="dv">1</span>, <span class="dv">3</span>, <span class="dv">4</span>),</span>
-<span id="cb5-9"><a href="#cb5-9" aria-hidden="true" tabindex="-1"></a>  <span class="at">n_trials            =</span> <span class="fl">1e4</span>)</span></code></pre></div>
+<p>The scenarios are simulated with the function <code>simulateScenarios()</code>. There are seven different scenarios presented in Table V. In this example, the Scenarios 1, 3, and 4 are reproduced. For each scenario, 10000 basket trial realizations are simulated:</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">scenarios_list &lt;-<span class="st"> </span><span class="kw">simulateScenarios</span>(
+  <span class="dt">n_subjects_list     =</span> <span class="kw">list</span>(<span class="kw">c</span>(<span class="dv">20</span>, <span class="dv">20</span>, <span class="dv">10</span>, <span class="dv">10</span>),
+                             <span class="kw">c</span>(<span class="dv">20</span>, <span class="dv">20</span>, <span class="dv">10</span>, <span class="dv">10</span>),
+                             <span class="kw">c</span>(<span class="dv">20</span>, <span class="dv">20</span>, <span class="dv">10</span>, <span class="dv">10</span>)),
+  <span class="dt">response_rates_list =</span> <span class="kw">list</span>(<span class="kw">c</span>(<span class="fl">0.1</span>, <span class="fl">0.1</span>, <span class="fl">0.1</span>, <span class="fl">0.1</span>),
+                             <span class="kw">c</span>(<span class="fl">0.1</span>, <span class="fl">0.1</span>, <span class="fl">0.3</span>, <span class="fl">0.3</span>),
+                             <span class="kw">c</span>(<span class="fl">0.1</span>, <span class="fl">0.1</span>, <span class="fl">0.1</span>, <span class="fl">0.5</span>)),
+  <span class="dt">scenario_numbers    =</span> <span class="kw">c</span>(<span class="dv">1</span>, <span class="dv">3</span>, <span class="dv">4</span>),
+  <span class="dt">n_trials            =</span> <span class="fl">1e4</span>)</code></pre></div>
 </div>
 <div id="performAnalysis" class="section level3">
 <h3>Running the model</h3>
-<p>The analysis of each simulated basket trial is performed with the function <code>performAnalyses()</code>. <span class="citation">Neuenschwander et al. (2016)</span> use the posterior means of the cohorts’ response rates to calculate the biases and mean squared errors, as well as to derive cohort-wise decisions. Setting the argument <code>post_mean</code> to <code>TRUE</code> will save the posterior means along with the posterior probability thresholds, which are required for the decision making laid out below. The prior parameters for the ExNex model are taken from Section 3.1 and Appendix 5.1.2 of <span class="citation">Neuenschwander et al. (2016)</span>.</p>
-<div class="sourceCode" id="cb6"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a>prior_parameters <span class="ot">&lt;-</span> <span class="fu">setPriorParametersExNex</span>(</span>
-<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a>  <span class="at">mu_mean   =</span> <span class="fu">c</span>(<span class="fu">logit</span>(<span class="fl">0.1</span>), <span class="fu">logit</span>(<span class="fl">0.3</span>)),</span>
-<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">mu_sd     =</span> <span class="fu">c</span>(<span class="fl">3.18</span>, <span class="fl">1.94</span>),</span>
-<span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">tau_scale =</span> <span class="dv">1</span>,</span>
-<span id="cb6-5"><a href="#cb6-5" aria-hidden="true" tabindex="-1"></a>  <span class="at">mu_j      =</span> <span class="fu">rep</span>(<span class="fu">logit</span>(<span class="fl">0.2</span>), <span class="dv">4</span>),</span>
-<span id="cb6-6"><a href="#cb6-6" aria-hidden="true" tabindex="-1"></a>  <span class="at">tau_j     =</span> <span class="fu">rep</span>(<span class="fl">2.5</span>, <span class="dv">4</span>),</span>
-<span id="cb6-7"><a href="#cb6-7" aria-hidden="true" tabindex="-1"></a>  <span class="at">w_j       =</span> <span class="fu">c</span>(<span class="fl">0.25</span>, <span class="fl">0.25</span>, <span class="fl">0.5</span>))</span>
-<span id="cb6-8"><a href="#cb6-8" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb6-9"><a href="#cb6-9" aria-hidden="true" tabindex="-1"></a><span class="cf">if</span> (<span class="fu">file.exists</span>(<span class="st">&quot;analyses_list.rds&quot;</span>)) {</span>
-<span id="cb6-10"><a href="#cb6-10" aria-hidden="true" tabindex="-1"></a>  </span>
-<span id="cb6-11"><a href="#cb6-11" aria-hidden="true" tabindex="-1"></a>  analyses_list <span class="ot">&lt;-</span> <span class="fu">readRDS</span>(<span class="st">&quot;analyses_list.rds&quot;</span>)</span>
-<span id="cb6-12"><a href="#cb6-12" aria-hidden="true" tabindex="-1"></a>  </span>
-<span id="cb6-13"><a href="#cb6-13" aria-hidden="true" tabindex="-1"></a>} <span class="cf">else</span> {</span>
-<span id="cb6-14"><a href="#cb6-14" aria-hidden="true" tabindex="-1"></a>  </span>
-<span id="cb6-15"><a href="#cb6-15" aria-hidden="true" tabindex="-1"></a>  analyses_list <span class="ot">&lt;-</span> <span class="fu">performAnalyses</span>(</span>
-<span id="cb6-16"><a href="#cb6-16" aria-hidden="true" tabindex="-1"></a>    <span class="at">scenario_list         =</span> scenarios_list,</span>
-<span id="cb6-17"><a href="#cb6-17" aria-hidden="true" tabindex="-1"></a>    <span class="at">method_names          =</span> <span class="st">&quot;exnex&quot;</span>,</span>
-<span id="cb6-18"><a href="#cb6-18" aria-hidden="true" tabindex="-1"></a>    <span class="at">prior_parameters_list =</span> prior_parameters,</span>
-<span id="cb6-19"><a href="#cb6-19" aria-hidden="true" tabindex="-1"></a>    <span class="at">seed                  =</span> rng_seed,</span>
-<span id="cb6-20"><a href="#cb6-20" aria-hidden="true" tabindex="-1"></a>    <span class="at">n_mcmc_iterations     =</span> <span class="fl">5e4</span>,</span>
-<span id="cb6-21"><a href="#cb6-21" aria-hidden="true" tabindex="-1"></a>    <span class="at">n_cores               =</span> 2L)</span>
-<span id="cb6-22"><a href="#cb6-22" aria-hidden="true" tabindex="-1"></a>  </span>
-<span id="cb6-23"><a href="#cb6-23" aria-hidden="true" tabindex="-1"></a>  <span class="fu">saveRDS</span>(analyses_list, <span class="st">&quot;analyses_list.rds&quot;</span>)</span>
-<span id="cb6-24"><a href="#cb6-24" aria-hidden="true" tabindex="-1"></a>  </span>
-<span id="cb6-25"><a href="#cb6-25" aria-hidden="true" tabindex="-1"></a>}</span></code></pre></div>
+<p>The analysis of each simulated basket trial is performed with the function <code>performAnalyses()</code>. <span class="citation">Neuenschwander et al. (2016)</span> use the posterior means of the cohorts' response rates to calculate the biases and mean squared errors, as well as to derive cohort-wise decisions. Setting the argument <code>post_mean</code> to <code>TRUE</code> will save the posterior means along with the posterior probability thresholds, which are required for the decision making laid out below. The prior parameters for the ExNex model are taken from Section 3.1 and Appendix 5.1.2 of <span class="citation">Neuenschwander et al. (2016)</span>.</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">prior_parameters &lt;-<span class="st"> </span><span class="kw">setPriorParametersExNex</span>(
+  <span class="dt">mu_mean   =</span> <span class="kw">c</span>(<span class="kw">logit</span>(<span class="fl">0.1</span>), <span class="kw">logit</span>(<span class="fl">0.3</span>)),
+  <span class="dt">mu_sd     =</span> <span class="kw">c</span>(<span class="fl">3.18</span>, <span class="fl">1.94</span>),
+  <span class="dt">tau_scale =</span> <span class="dv">1</span>,
+  <span class="dt">mu_j      =</span> <span class="kw">rep</span>(<span class="kw">logit</span>(<span class="fl">0.2</span>), <span class="dv">4</span>),
+  <span class="dt">tau_j     =</span> <span class="kw">rep</span>(<span class="fl">2.5</span>, <span class="dv">4</span>),
+  <span class="dt">w_j       =</span> <span class="kw">c</span>(<span class="fl">0.25</span>, <span class="fl">0.25</span>, <span class="fl">0.5</span>))
+
+<span class="cf">if</span> (<span class="kw">file.exists</span>(<span class="st">&quot;analyses_list.rds&quot;</span>)) {
+  
+  analyses_list &lt;-<span class="st"> </span><span class="kw">readRDS</span>(<span class="st">&quot;analyses_list.rds&quot;</span>)
+  
+} <span class="cf">else</span> {
+  
+  analyses_list &lt;-<span class="st"> </span><span class="kw">performAnalyses</span>(
+    <span class="dt">scenario_list         =</span> scenarios_list,
+    <span class="dt">method_names          =</span> <span class="st">&quot;exnex&quot;</span>,
+    <span class="dt">prior_parameters_list =</span> prior_parameters,
+    <span class="dt">seed                  =</span> rng_seed,
+    <span class="dt">n_mcmc_iterations     =</span> <span class="fl">5e4</span>,
+    <span class="dt">n_cores               =</span> 2L)
+  
+  <span class="kw">saveRDS</span>(analyses_list, <span class="st">&quot;analyses_list.rds&quot;</span>)
+  
+}</code></pre></div>
 <p>Note that although the total number of simulated trials is 3 x 10000, there are only 2314 unique trial realizations among the three scenarios. As the function <code>performAnalyses()</code> takes advantage of this, its run time is reduced when compared to applying the model to all simulated trials. However, some additional time is required to map the results from the unique trials back to the simulated trials of each scenario.</p>
 </div>
 <div id="estimating-the-biases-and-mses" class="section level3">
 <h3>Estimating the biases and MSEs</h3>
 <p>The bias and mean squared error (MSE) per cohort, as well as some posterior quantiles, are estimated with <code>getEstimates()</code>. The argument <code>point_estimator = &quot;mean&quot;</code> ensures that the mean instead of the median will be used for calculating the biases and MSEs. In order to better assess and compare the results with the numbers presented by <span class="citation">Neuenschwander et al. (2016)</span>, scaling and rounding may be applied with <code>scaleRoundList()</code>:</p>
-<div class="sourceCode" id="cb7"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a>estimates <span class="ot">&lt;-</span> <span class="fu">getEstimates</span>(</span>
-<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a>    <span class="at">analyses_list   =</span> analyses_list,</span>
-<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a>    <span class="at">point_estimator =</span> <span class="st">&quot;mean&quot;</span>)</span>
-<span id="cb7-4"><a href="#cb7-4" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb7-5"><a href="#cb7-5" aria-hidden="true" tabindex="-1"></a><span class="fu">scaleRoundList</span>(</span>
-<span id="cb7-6"><a href="#cb7-6" aria-hidden="true" tabindex="-1"></a>  <span class="at">list         =</span> estimates,</span>
-<span id="cb7-7"><a href="#cb7-7" aria-hidden="true" tabindex="-1"></a>  <span class="at">scale_param  =</span> <span class="dv">100</span>,</span>
-<span id="cb7-8"><a href="#cb7-8" aria-hidden="true" tabindex="-1"></a>  <span class="at">round_digits =</span> <span class="dv">2</span>)</span>
-<span id="cb7-9"><a href="#cb7-9" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; $exnex</span></span>
-<span id="cb7-10"><a href="#cb7-10" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; $exnex$scenario_1</span></span>
-<span id="cb7-11"><a href="#cb7-11" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;      Mean   SD 2.5%  50% 97.5% Bias  MSE</span></span>
-<span id="cb7-12"><a href="#cb7-12" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; p_1 10.76 6.01 2.46 9.65 25.26 0.76 0.34</span></span>
-<span id="cb7-13"><a href="#cb7-13" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; p_2 10.61 5.97 2.39 9.50 25.05 0.61 0.33</span></span>
-<span id="cb7-14"><a href="#cb7-14" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; p_3 11.54 8.06 1.66 9.64 31.86 1.54 0.56</span></span>
-<span id="cb7-15"><a href="#cb7-15" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; p_4 11.62 8.10 1.68 9.73 32.02 1.62 0.56</span></span>
-<span id="cb7-16"><a href="#cb7-16" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb7-17"><a href="#cb7-17" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; $exnex$scenario_3</span></span>
-<span id="cb7-18"><a href="#cb7-18" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;      Mean    SD 2.5%   50% 97.5%  Bias  MSE</span></span>
-<span id="cb7-19"><a href="#cb7-19" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; p_1 11.19  6.21 2.54 10.07 26.07  1.19 0.37</span></span>
-<span id="cb7-20"><a href="#cb7-20" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; p_2 11.34  6.25 2.60 10.21 26.30  1.34 0.38</span></span>
-<span id="cb7-21"><a href="#cb7-21" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; p_3 28.75 12.22 9.11 27.42 55.60 -1.25 1.65</span></span>
-<span id="cb7-22"><a href="#cb7-22" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; p_4 28.82 12.23 9.14 27.50 55.70 -1.18 1.64</span></span>
-<span id="cb7-23"><a href="#cb7-23" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb7-24"><a href="#cb7-24" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; $exnex$scenario_4</span></span>
-<span id="cb7-25"><a href="#cb7-25" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;      Mean    SD  2.5%   50% 97.5%  Bias  MSE</span></span>
-<span id="cb7-26"><a href="#cb7-26" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; p_1 11.15  6.21  2.54 10.01 26.10  1.15 0.37</span></span>
-<span id="cb7-27"><a href="#cb7-27" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; p_2 11.07  6.18  2.51  9.93 25.97  1.07 0.37</span></span>
-<span id="cb7-28"><a href="#cb7-28" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; p_3 12.21  8.42  1.80 10.26 33.30  2.21 0.66</span></span>
-<span id="cb7-29"><a href="#cb7-29" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; p_4 46.73 14.01 20.69 46.49 74.06 -3.27 2.32</span></span></code></pre></div>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">estimates &lt;-<span class="st"> </span><span class="kw">getEstimates</span>(
+    <span class="dt">analyses_list   =</span> analyses_list,
+    <span class="dt">point_estimator =</span> <span class="st">&quot;mean&quot;</span>)
+
+<span class="kw">scaleRoundList</span>(
+  <span class="dt">list         =</span> estimates,
+  <span class="dt">scale_param  =</span> <span class="dv">100</span>,
+  <span class="dt">round_digits =</span> <span class="dv">2</span>)
+<span class="co">#&gt; $exnex</span>
+<span class="co">#&gt; $exnex$scenario_1</span>
+<span class="co">#&gt;      Mean   SD 2.5%  50% 97.5% Bias  MSE</span>
+<span class="co">#&gt; p_1 10.76 6.01 2.46 9.65 25.26 0.76 0.34</span>
+<span class="co">#&gt; p_2 10.61 5.97 2.39 9.50 25.05 0.61 0.33</span>
+<span class="co">#&gt; p_3 11.54 8.06 1.66 9.64 31.86 1.54 0.56</span>
+<span class="co">#&gt; p_4 11.62 8.10 1.68 9.73 32.02 1.62 0.56</span>
+<span class="co">#&gt; </span>
+<span class="co">#&gt; $exnex$scenario_3</span>
+<span class="co">#&gt;      Mean    SD 2.5%   50% 97.5%  Bias  MSE</span>
+<span class="co">#&gt; p_1 11.19  6.21 2.54 10.07 26.07  1.19 0.37</span>
+<span class="co">#&gt; p_2 11.34  6.25 2.60 10.21 26.30  1.34 0.38</span>
+<span class="co">#&gt; p_3 28.75 12.22 9.11 27.42 55.60 -1.25 1.65</span>
+<span class="co">#&gt; p_4 28.82 12.23 9.14 27.50 55.70 -1.18 1.64</span>
+<span class="co">#&gt; </span>
+<span class="co">#&gt; $exnex$scenario_4</span>
+<span class="co">#&gt;      Mean    SD  2.5%   50% 97.5%  Bias  MSE</span>
+<span class="co">#&gt; p_1 11.15  6.21  2.54 10.01 26.10  1.15 0.37</span>
+<span class="co">#&gt; p_2 11.07  6.18  2.51  9.93 25.97  1.07 0.37</span>
+<span class="co">#&gt; p_3 12.21  8.42  1.80 10.26 33.30  2.21 0.66</span>
+<span class="co">#&gt; p_4 46.73 14.01 20.69 46.49 74.06 -3.27 2.32</span></code></pre></div>
 <!-- Comparing the biases and MSEs with the respective numbers provided in Table V of @exnex2016, one can see that for the scaled MSEs the results are equal to the second decimal place. -->
 <!-- However, some scaled biases differ in the first decimal place. -->
 <!-- Please note that the first and last two cohorts should yield the same operating characteristics when their true response rates are equal, which is fulfilled by the results provided by `bhmbasket`. -->
@@ -314,59 +271,59 @@ div.csl-indent {
 <h3>Estimating the cohort-wise go probabilities</h3>
 <p>The cohort-wise go decisions are derived with the function <code>getGoDecisions()</code>, which applies the specified decision rules to each simulated basket trial for each scenario. The estimated go probabilities for each scenario can then be derived with the function <code>getGoProbabilities()</code>.</p>
 <p>The set up of the decision rules in <code>getGoDecisions()</code> warrants further explanation. Generally, a simple decision rule for a go in a single cohort <span class="math inline">\(j\)</span> can be written as <span class="math display">\[P(p_j|\text{data} &gt; \bar{p}_{j}) &gt; \gamma_j,\]</span> where <span class="math inline">\(p_j|\text{data}\)</span> is the posterior response rate, <span class="math inline">\(\bar{p}_{j}\)</span> is the is the boundary response rate, and <span class="math inline">\(\gamma_j\)</span> is the posterior evidence level for a go decision. Thus, the decision rule consists of three parts: the posterior response rate, the boundary response rate, and the posterior probability threshold. The arguments for setting up the decision rules correspond to these three parts: <code>cohort_names</code> picks the posterior response rates, <code>boundary_rules</code> specifies the boundary response rates and type of comparison, and <code>evidence_levels</code> provides the posterior evidence levels. For example, the decision rule <span class="math inline">\(P(p_1|\text{data} &gt; 0.1) &gt; 0.9\)</span> would then be implemented as</p>
-<div class="sourceCode" id="cb8"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a>cohort_names    <span class="ot">=</span> <span class="st">&quot;p_1&quot;</span></span>
-<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a>boundary_rules  <span class="ot">=</span> <span class="fu">quote</span>(<span class="fu">c</span>(x[<span class="dv">1</span>] <span class="sc">&gt;</span> <span class="fl">0.1</span>))</span>
-<span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a>evidence_levels <span class="ot">=</span> <span class="fl">0.9</span></span></code></pre></div>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">cohort_names    =<span class="st"> &quot;p_1&quot;</span>
+boundary_rules  =<span class="st"> </span><span class="kw">quote</span>(<span class="kw">c</span>(x[<span class="dv">1</span>] <span class="op">&gt;</span><span class="st"> </span><span class="fl">0.1</span>))
+evidence_levels =<span class="st"> </span><span class="fl">0.9</span></code></pre></div>
 <p>It is possible to specify different boundary rules and evidence levels for different analysis methods with <code>list()</code>. In this case, only the ExNex method is applied and no list is needed. Note that only evidence levels specified in <code>performAnalyses()</code> can be utilized.</p>
 <p>It is possible to implement combined decision criteria, such as utilized by <span class="citation">Neuenschwander et al. (2016)</span> who require in Section 3.1 for a go decision in the first cohort that <span class="math display">\[P(p_1|\text{data} &gt; 0.1) &gt; 0.9 \quad\land\quad \text{Mean}(p_1|\text{data}) &gt; 0.2\]</span> holds true. This combined decision rule would then be implemented as</p>
-<div class="sourceCode" id="cb9"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a>cohort_names    <span class="ot">=</span> <span class="fu">c</span>(<span class="st">&quot;p_1&quot;</span>, <span class="st">&quot;p_1&quot;</span>)</span>
-<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a>boundary_rules  <span class="ot">=</span> <span class="fu">quote</span>(<span class="fu">c</span>(x[<span class="dv">1</span>] <span class="sc">&gt;</span> <span class="fl">0.1</span> <span class="sc">&amp;</span> x[<span class="dv">2</span>] <span class="sc">&gt;</span> <span class="fl">0.2</span>))</span>
-<span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a>evidence_levels <span class="ot">=</span> <span class="fu">c</span>(<span class="fl">0.9</span>, <span class="st">&quot;mean&quot;</span>)</span></code></pre></div>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">cohort_names    =<span class="st"> </span><span class="kw">c</span>(<span class="st">&quot;p_1&quot;</span>, <span class="st">&quot;p_1&quot;</span>)
+boundary_rules  =<span class="st"> </span><span class="kw">quote</span>(<span class="kw">c</span>(x[<span class="dv">1</span>] <span class="op">&gt;</span><span class="st"> </span><span class="fl">0.1</span> <span class="op">&amp;</span><span class="st"> </span>x[<span class="dv">2</span>] <span class="op">&gt;</span><span class="st"> </span><span class="fl">0.2</span>))
+evidence_levels =<span class="st"> </span><span class="kw">c</span>(<span class="fl">0.9</span>, <span class="st">&quot;mean&quot;</span>)</code></pre></div>
 <p>Thus, the go probabilities for the Scenarios 1, 3, and 4 can be estimated by:</p>
-<div class="sourceCode" id="cb10"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a>decisions_list <span class="ot">&lt;-</span> <span class="fu">getGoDecisions</span>(</span>
-<span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a>  <span class="at">analyses_list   =</span> analyses_list,</span>
-<span id="cb10-3"><a href="#cb10-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">cohort_names    =</span> <span class="fu">c</span>(<span class="st">&quot;p_1&quot;</span>, <span class="st">&quot;p_1&quot;</span>,</span>
-<span id="cb10-4"><a href="#cb10-4" aria-hidden="true" tabindex="-1"></a>                      <span class="st">&quot;p_2&quot;</span>, <span class="st">&quot;p_2&quot;</span>,</span>
-<span id="cb10-5"><a href="#cb10-5" aria-hidden="true" tabindex="-1"></a>                      <span class="st">&quot;p_3&quot;</span>, <span class="st">&quot;p_3&quot;</span>,</span>
-<span id="cb10-6"><a href="#cb10-6" aria-hidden="true" tabindex="-1"></a>                      <span class="st">&quot;p_4&quot;</span>, <span class="st">&quot;p_4&quot;</span>),</span>
-<span id="cb10-7"><a href="#cb10-7" aria-hidden="true" tabindex="-1"></a>  <span class="at">evidence_levels =</span> <span class="fu">c</span>(<span class="fl">0.9</span>, <span class="st">&quot;mean&quot;</span>,</span>
-<span id="cb10-8"><a href="#cb10-8" aria-hidden="true" tabindex="-1"></a>                      <span class="fl">0.9</span>, <span class="st">&quot;mean&quot;</span>,</span>
-<span id="cb10-9"><a href="#cb10-9" aria-hidden="true" tabindex="-1"></a>                      <span class="fl">0.8</span>, <span class="st">&quot;mean&quot;</span>,</span>
-<span id="cb10-10"><a href="#cb10-10" aria-hidden="true" tabindex="-1"></a>                      <span class="fl">0.8</span>, <span class="st">&quot;mean&quot;</span>),</span>
-<span id="cb10-11"><a href="#cb10-11" aria-hidden="true" tabindex="-1"></a>  <span class="at">boundary_rules  =</span> <span class="fu">quote</span>(<span class="fu">c</span>(x[<span class="dv">1</span>] <span class="sc">&gt;</span> <span class="fl">0.1</span> <span class="sc">&amp;</span> x[<span class="dv">2</span>] <span class="sc">&gt;</span> <span class="fl">0.2</span>,</span>
-<span id="cb10-12"><a href="#cb10-12" aria-hidden="true" tabindex="-1"></a>                            x[<span class="dv">3</span>] <span class="sc">&gt;</span> <span class="fl">0.1</span> <span class="sc">&amp;</span> x[<span class="dv">4</span>] <span class="sc">&gt;</span> <span class="fl">0.2</span>,</span>
-<span id="cb10-13"><a href="#cb10-13" aria-hidden="true" tabindex="-1"></a>                            x[<span class="dv">5</span>] <span class="sc">&gt;</span> <span class="fl">0.1</span> <span class="sc">&amp;</span> x[<span class="dv">6</span>] <span class="sc">&gt;</span> <span class="fl">0.2</span>,</span>
-<span id="cb10-14"><a href="#cb10-14" aria-hidden="true" tabindex="-1"></a>                            x[<span class="dv">7</span>] <span class="sc">&gt;</span> <span class="fl">0.1</span> <span class="sc">&amp;</span> x[<span class="dv">8</span>] <span class="sc">&gt;</span> <span class="fl">0.2</span>)))</span>
-<span id="cb10-15"><a href="#cb10-15" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb10-16"><a href="#cb10-16" aria-hidden="true" tabindex="-1"></a>go_probabilities <span class="ot">&lt;-</span> <span class="fu">getGoProbabilities</span>(decisions_list)</span>
-<span id="cb10-17"><a href="#cb10-17" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb10-18"><a href="#cb10-18" aria-hidden="true" tabindex="-1"></a><span class="fu">scaleRoundList</span>(</span>
-<span id="cb10-19"><a href="#cb10-19" aria-hidden="true" tabindex="-1"></a>  <span class="at">list         =</span> go_probabilities,</span>
-<span id="cb10-20"><a href="#cb10-20" aria-hidden="true" tabindex="-1"></a>  <span class="at">scale_param  =</span> <span class="dv">100</span>,</span>
-<span id="cb10-21"><a href="#cb10-21" aria-hidden="true" tabindex="-1"></a>  <span class="at">round_digits =</span> <span class="dv">0</span>)</span>
-<span id="cb10-22"><a href="#cb10-22" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; $exnex</span></span>
-<span id="cb10-23"><a href="#cb10-23" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; $exnex$scenario_1</span></span>
-<span id="cb10-24"><a href="#cb10-24" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;    overall decision_1 decision_2 decision_3 decision_4</span></span>
-<span id="cb10-25"><a href="#cb10-25" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; Go      21          5          5          8          8</span></span>
-<span id="cb10-26"><a href="#cb10-26" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb10-27"><a href="#cb10-27" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; $exnex$scenario_3</span></span>
-<span id="cb10-28"><a href="#cb10-28" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;    overall decision_1 decision_2 decision_3 decision_4</span></span>
-<span id="cb10-29"><a href="#cb10-29" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; Go      87         10         10         69         68</span></span>
-<span id="cb10-30"><a href="#cb10-30" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb10-31"><a href="#cb10-31" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; $exnex$scenario_4</span></span>
-<span id="cb10-32"><a href="#cb10-32" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;    overall decision_1 decision_2 decision_3 decision_4</span></span>
-<span id="cb10-33"><a href="#cb10-33" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; Go      95          7          7         15         95</span></span></code></pre></div>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">decisions_list &lt;-<span class="st"> </span><span class="kw">getGoDecisions</span>(
+  <span class="dt">analyses_list   =</span> analyses_list,
+  <span class="dt">cohort_names    =</span> <span class="kw">c</span>(<span class="st">&quot;p_1&quot;</span>, <span class="st">&quot;p_1&quot;</span>,
+                      <span class="st">&quot;p_2&quot;</span>, <span class="st">&quot;p_2&quot;</span>,
+                      <span class="st">&quot;p_3&quot;</span>, <span class="st">&quot;p_3&quot;</span>,
+                      <span class="st">&quot;p_4&quot;</span>, <span class="st">&quot;p_4&quot;</span>),
+  <span class="dt">evidence_levels =</span> <span class="kw">c</span>(<span class="fl">0.9</span>, <span class="st">&quot;mean&quot;</span>,
+                      <span class="fl">0.9</span>, <span class="st">&quot;mean&quot;</span>,
+                      <span class="fl">0.8</span>, <span class="st">&quot;mean&quot;</span>,
+                      <span class="fl">0.8</span>, <span class="st">&quot;mean&quot;</span>),
+  <span class="dt">boundary_rules  =</span> <span class="kw">quote</span>(<span class="kw">c</span>(x[<span class="dv">1</span>] <span class="op">&gt;</span><span class="st"> </span><span class="fl">0.1</span> <span class="op">&amp;</span><span class="st"> </span>x[<span class="dv">2</span>] <span class="op">&gt;</span><span class="st"> </span><span class="fl">0.2</span>,
+                            x[<span class="dv">3</span>] <span class="op">&gt;</span><span class="st"> </span><span class="fl">0.1</span> <span class="op">&amp;</span><span class="st"> </span>x[<span class="dv">4</span>] <span class="op">&gt;</span><span class="st"> </span><span class="fl">0.2</span>,
+                            x[<span class="dv">5</span>] <span class="op">&gt;</span><span class="st"> </span><span class="fl">0.1</span> <span class="op">&amp;</span><span class="st"> </span>x[<span class="dv">6</span>] <span class="op">&gt;</span><span class="st"> </span><span class="fl">0.2</span>,
+                            x[<span class="dv">7</span>] <span class="op">&gt;</span><span class="st"> </span><span class="fl">0.1</span> <span class="op">&amp;</span><span class="st"> </span>x[<span class="dv">8</span>] <span class="op">&gt;</span><span class="st"> </span><span class="fl">0.2</span>)))
+
+go_probabilities &lt;-<span class="st"> </span><span class="kw">getGoProbabilities</span>(decisions_list)
+
+<span class="kw">scaleRoundList</span>(
+  <span class="dt">list         =</span> go_probabilities,
+  <span class="dt">scale_param  =</span> <span class="dv">100</span>,
+  <span class="dt">round_digits =</span> <span class="dv">0</span>)
+<span class="co">#&gt; $exnex</span>
+<span class="co">#&gt; $exnex$scenario_1</span>
+<span class="co">#&gt;    overall decision_1 decision_2 decision_3 decision_4</span>
+<span class="co">#&gt; Go      21          5          5          8          8</span>
+<span class="co">#&gt; </span>
+<span class="co">#&gt; $exnex$scenario_3</span>
+<span class="co">#&gt;    overall decision_1 decision_2 decision_3 decision_4</span>
+<span class="co">#&gt; Go      87         10         10         69         68</span>
+<span class="co">#&gt; </span>
+<span class="co">#&gt; $exnex$scenario_4</span>
+<span class="co">#&gt;    overall decision_1 decision_2 decision_3 decision_4</span>
+<span class="co">#&gt; Go      95          7          7         15         95</span></code></pre></div>
 <p>By comparing these go probabilities to the values provided in Table V of <span class="citation">Neuenschwander et al. (2016)</span> one can see that the results differ at most by 1 percentage point.</p>
 </div>
 </div>
 <div id="references" class="section level2 unnumbered">
-<h2 class="unnumbered">References</h2>
-<div id="refs" class="references csl-bib-body hanging-indent">
-<div id="ref-chugh2009" class="csl-entry">
-Chugh, Rashmi, J. Kyle Wathen, Robert G. Maki, Robert S. Benjamin, Shreyaskumar R. Patel, Paul A. Myers, Dennis A. Priebat, et al. 2009. <span>“Phase II Multicenter Trial of Imatinib in 10 Histologic Subtypes of Sarcoma Using a Bayesian Hierarchical Statistical Model.”</span> <em>Journal of Clinical Oncology</em> 27 (19): 3148–53. <a href="https://doi.org/10.1200/JCO.2008.20.5054">https://doi.org/10.1200/JCO.2008.20.5054</a>.
+<h2>References</h2>
+<div id="refs" class="references">
+<div id="ref-chugh2009">
+<p>Chugh, Rashmi, J. Kyle Wathen, Robert G. Maki, Robert S. Benjamin, Shreyaskumar R. Patel, Paul A. Myers, Dennis A. Priebat, et al. 2009. “Phase II Multicenter Trial of Imatinib in 10 Histologic Subtypes of Sarcoma Using a Bayesian Hierarchical Statistical Model.” <em>Journal of Clinical Oncology</em> 27 (19). American Society of Clinical Oncology: 3148–53. doi:<a href="https://doi.org/10.1200/JCO.2008.20.5054">10.1200/JCO.2008.20.5054</a>.</p>
 </div>
-<div id="ref-exnex2016" class="csl-entry">
-Neuenschwander, Beat, Simon Wandel, Satrajit Roychoudhury, and Stuart Bailey. 2016. <span>“Robust Exchangeability Designs for Early Phase Clinical Trials with Multiple Strata.”</span> <em>Pharmaceutical Statistics</em> 15 (2): 123–34. <a href="https://doi.org/10.1002/pst.1730">https://doi.org/10.1002/pst.1730</a>.
+<div id="ref-exnex2016">
+<p>Neuenschwander, Beat, Simon Wandel, Satrajit Roychoudhury, and Stuart Bailey. 2016. “Robust Exchangeability Designs for Early Phase Clinical Trials with Multiple Strata.” <em>Pharmaceutical Statistics</em> 15 (2): 123–34. doi:<a href="https://doi.org/10.1002/pst.1730">10.1002/pst.1730</a>.</p>
 </div>
 </div>
 </div>

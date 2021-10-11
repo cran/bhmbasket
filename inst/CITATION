@@ -1,4 +1,4 @@
-citHeader("To cite bhmbasket in publications please use:")
+citHeader("To cite bhmbasket in publications, please use:")
 
 # year <- sub("-.*", "", meta$Date)
 # year <- sub(".*(2[[:digit:]]{3})-.*", "\\1", meta$Date)

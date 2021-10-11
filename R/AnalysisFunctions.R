@@ -94,7 +94,8 @@ getPosteriors <- function (
                            n.thin             = 1,
                            DIC                = FALSE,
                            progress.bar       = "none",
-                           jags.module        = "mix")
+                           jags.module        = NULL,#"mix",
+                           quiet              = TRUE)
 
   ## Adaption and burn-in not included in sims.array
   posterior_distributions <- rbind(jags_fit$BUGSoutput$sims.array[, 1, ],
@@ -197,8 +198,8 @@ getPostQuantiles <- function (
 
   ## MCMC Parameters
   n_mcmc_iterations = 1e4,
-  seed              = as.numeric(Sys.time()),
-  n_cores           = parallel::detectCores() - 1L,
+  # seed              = as.numeric(Sys.time()),
+  # n_cores           = parallel::detectCores() - 1L,
 
   ## Where to save one of the posterior response rates approximations provided by JAGS
   save_path         = NULL,
@@ -217,20 +218,19 @@ getPostQuantiles <- function (
 
   ## Create random index for saving one of the posterior response rates
   if (is.null(save_trial) && !is.null(save_path)) {
-    set.seed(seed)
+    # set.seed(seed)
     save_trial <- sample(seq_len(n_analyses), size = 1)
   }
 
   ## Run parallel loops
   ## prepare foreach loop over k
-  "%do%"    <- foreach::"%do%"
-  "%dopar%" <- foreach::"%dopar%"
 
-  if (isTRUE(all.equal(n_analyses, 1))) {
-    n_cores <- 1L
-  }
+  # if (isTRUE(all.equal(n_analyses, 1))) {
+  #   n_cores <- 1L
+  # }
 
-  exported_stuff <- c("seed", "scenario_data", "j_data", "post_mean", "quantiles",
+  exported_stuff <- c(#"seed",
+                      "scenario_data", "j_data", "post_mean", "quantiles",
                       "calc_differences", "j_parameters", "j_model_file", "n_mcmc_iterations",
                       "getPosteriors", "save_path", "save_trial", "method_name",
                       "posteriors2Quantiles",
@@ -238,8 +238,8 @@ getPostQuantiles <- function (
 
   foreach_expression <- quote({
 
-    ## Set seed that changes for each iteration
-    set.seed(seed + k)
+    # ## Set seed that changes for each iteration
+    # set.seed(seed + k)
 
     ##  Retrieve the likelihood data for the kth unique simulation
     j_data$r <- as.numeric(scenario_data$n_responders[k, ])
@@ -396,34 +396,27 @@ getPostQuantiles <- function (
 
   })
 
-  if (n_cores > 1) {
-
-    doParallel::registerDoParallel(n_cores)
-    on.exit(doParallel::stopImplicitCluster())
-
-    posterior_quantiles_list <- foreach::foreach(k = seq_len(n_analyses),
-                                                 .verbose  = FALSE,
-                                                 .packages = c("R2jags"),
-                                                 .export   = exported_stuff
-    ) %dopar% {eval(foreach_expression)}
-
-  } else {
-
-    invisible(utils::capture.output({
-
-      suppressMessages({
-
-        posterior_quantiles_list <- foreach::foreach(k = seq_len(n_analyses),
-                                                     .verbose  = FALSE,
-                                                     .packages = c("R2jags"),
-                                                     .export   = exported_stuff
-        ) %do% {eval(foreach_expression)}
-
-      })
-
-    }))
-
-  }
+  # invisible(utils::capture.output({
+  # 
+  #   suppressMessages({
+  # 
+  #     posterior_quantiles_list <- foreach::foreach(k = seq_len(n_analyses),
+  #                                                  .verbose  = FALSE,
+  #                                                  .packages = c("R2jags"),
+  #                                                  .export   = exported_stuff
+  #     ) %dopar% {eval(foreach_expression)}
+  # 
+  #   }, classes = c("message"))
+  # 
+  # }))
+  
+  "%dopar%" <- foreach::"%dopar%"
+  
+  posterior_quantiles_list <- foreach::foreach(
+    k = seq_len(n_analyses),
+    .verbose  = FALSE,
+    .packages = c("R2jags"),
+    .export   = exported_stuff) %dopar% {eval(foreach_expression)}
 
   return (posterior_quantiles_list)
 
@@ -455,10 +448,14 @@ getPostQuantiles <- function (
 #' E.g. providing `c(2, 1)` calculates the difference between cohort `2` and cohort `1`.
 #' If `NULL`, no subtractions are performed, Default: `NULL`
 #' @param n_mcmc_iterations A positive integer for the number of MCMC iterations,
-#' see Details, Default: `10000`
-#' @param n_cores A positive integer for the number of cores for the parallelization,
-#' Default: `parallel::detectCores() - 1L`
-#' @param seed A numeric for the random seed, Default: `as.numeric(Sys.time())`
+#' see Details, Default: `10000`.
+#' If `n_mcmc_iterations` is present in `.GlobalEnv` and `missing(n_mcmc_iterations)`,
+#' the globally available value will be used.
+#' @param n_cores Argument is deprecated and does nothing as of version 0.9.3.
+#' A positive integer for the number of cores for the parallelization,
+#' Default: `1`
+#' @param seed Argument is deprecated and does nothing as of version 0.9.3.
+#' A numeric for the random seed, Default: `1`
 #' @param verbose A logical indicating whether messages should be printed, Default: `TRUE`
 #' @return An object of class `analysis_list`.
 #' @details
@@ -486,7 +483,6 @@ getPostQuantiles <- function (
 #' The JAGS code for the BHM `"exnex"` was taken from Neuenschwander et al. (2016).
 #' The JAGS code for the BHM `"exnex_adj"` is based on the JAGS code for `"exnex"`.
 #' @seealso
-#'  \code{\link[parallel]{detectCores}}
 #'  \code{\link[bhmbasket]{simulateScenarios}}
 #'  \code{\link[bhmbasket]{createTrial}}
 #'  \code{\link[bhmbasket]{getPriorParameters}}
@@ -501,8 +497,7 @@ getPostQuantiles <- function (
 #'    scenario_list      = trial_data,
 #'    target_rates       = rep(0.5, 3),
 #'    calc_differences   = matrix(c(3, 2, 1, 1), ncol = 2),
-#'    n_mcmc_iterations  = 100,
-#'    n_cores            = 1L)
+#'    n_mcmc_iterations  = 100)
 #' @references Berry, Scott M., et al. "Bayesian hierarchical modeling of patient subpopulations:
 #' efficient designs of phase II oncology clinical trials."
 #' \emph{Clinical Trials} 10.5 (2013): 720-734.
@@ -513,7 +508,6 @@ getPostQuantiles <- function (
 #' using Gibbs sampling."
 #' \emph{Proceedings of the 3rd international workshop on distributed statistical computing.}
 #' Vol. 124. No. 125.10. 2003.
-#' @importFrom parallel detectCores
 #' @export
 performAnalyses <- function (
 
@@ -527,8 +521,8 @@ performAnalyses <- function (
   calc_differences      = NULL,
 
   n_mcmc_iterations     = 1e4,
-  n_cores               = parallel::detectCores() - 1L,
-  seed                  = as.numeric(Sys.time()),
+  n_cores               = 1,
+  seed                  = 1,
   verbose               = TRUE
 
 ) {
@@ -551,12 +545,18 @@ performAnalyses <- function (
                       "of cohorts"))
   error_n_mcmc_iterations <-
     simpleError("Please provide a positive integer for the argument 'n_mcmc_iterations'")
-  error_n_cores <-
-    simpleError("Please provide a positive integer for the argument 'n_cores'")
-  error_seed <-
-    simpleError("Please provide a numeric for the argument 'seed'")
+  # error_n_cores <-
+  #   simpleError("Please provide a positive integer for the argument 'n_cores'")
+  # error_seed <-
+  #   simpleError("Please provide a numeric for the argument 'seed'")
   error_verbose <-
     simpleError("Please provide a logical for the argument 'verbose'")
+
+  warning_n_cores <- "The arguemnt 'n_cores' is deprecated as of version 0.9.3."
+  warning_seed    <- "The argument 'seed' is deprecated as of version 0.9.3."
+
+  if (!missing(n_cores)) simpleWarning(warning_n_cores)
+  if (!missing(seed))    simpleWarning(warning_seed)
 
   if (missing(scenario_list)) stop (error_scenario_list)
 
@@ -612,15 +612,35 @@ performAnalyses <- function (
        max(calc_differences) > n_cohorts_min))            stop (error_calc_differences)
   rm (n_cohorts_min)
 
+  ## check whether n_mcmc_iterations is present in global environment
+  if ("n_mcmc_iterations" %in% ls(envir = .GlobalEnv) & missing(n_mcmc_iterations)) {
+    n_mcmc_iterations <- get("n_mcmc_iterations", envir = .GlobalEnv)
+  }
+
   if (!is.single.positive.wholenumber(n_mcmc_iterations)) stop (error_n_mcmc_iterations)
-  if (!is.single.positive.wholenumber(n_cores))           stop (error_n_cores)
-  if (!is.single.numeric(seed))                           stop (error_seed)
+  # if (!is.single.positive.wholenumber(n_cores))           stop (error_n_cores)
+  # if (!is.single.numeric(seed))                           stop (error_seed)
   if (!is.logical(verbose))                               stop (error_verbose)
+
+  ## check for parallel backend
+  "%dopar%" <- foreach::"%dopar%"
+  if(!foreach::getDoParRegistered()) {
+    message("\nCaution: No parallel backend detected for the 'foreach' framework.",
+            " For execution in parallel, register a doPar parallel backend,",
+            " e.g. with:\n",
+            "   n_cores <- parallel::detectCores() - 1L\n",
+            "   cl      <- parallel::makeCluster(n_cores)\n",
+            "   doParallel::registerDoParallel(cl)\n")
+    
+    tt <- suppressWarnings(foreach::foreach(k = 1:2) %dopar% {k^k^k})
+    rm(tt)
+    
+  }
 
   ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ###
 
   ## message to user
-  if (verbose) message(format(Sys.time(), "%m/%d/%y"), " Performing Analyses")
+  if (verbose) message(format(Sys.time(), "%d-%h-%Y"), " Performing Analyses")
 
   ## some housekeeping
   method_names <- sort(method_names)
@@ -750,8 +770,8 @@ performAnalyses <- function (
       j_model_file      = prepare_analysis$j_model_file,
       j_data            = prepare_analysis$j_data,
       n_mcmc_iterations = n_mcmc_iterations,
-      seed              = seed,
-      n_cores           = n_cores,
+      # seed              = seed,
+      # n_cores           = n_cores,
       save_path         = NULL,
       save_trial        = NULL)
 
@@ -782,12 +802,9 @@ performAnalyses <- function (
                           "prior_parameters_list", "quantiles", "n_mcmc_iterations",
                           "getRowIndexOfVectorInMatrix")
 
-  "%do%"             <- foreach::"%do%"
-  "%dopar%"          <- foreach::"%dopar%"
-
-  if (identical(length(scenario_numbers), 1L)) {
-    n_cores <- 1L
-  }
+  # if (identical(length(scenario_numbers), 1L)) {
+  #   n_cores <- 1L
+  # }
 
   foreach_expression <- quote({
 
@@ -864,23 +881,10 @@ performAnalyses <- function (
   })
 
   ## run foreach
-  if (n_cores > 1) {
-    doParallel::registerDoParallel(n_cores)
-    on.exit(doParallel::stopImplicitCluster())
-
-    analyses_list <- foreach::foreach(k = seq_along(scenario_numbers),
-                                      .verbose  = FALSE,
-                                      .export   = exported_stuff
-    ) %dopar% {eval(foreach_expression)}
-
-  } else {
-
-    analyses_list <- foreach::foreach(k = seq_along(scenario_numbers),
-                                      .verbose  = FALSE,
-                                      .export   = exported_stuff
-    ) %do% {eval(foreach_expression)}
-
-  }
+  analyses_list <- foreach::foreach(k = seq_along(scenario_numbers),
+                                    .verbose  = FALSE,
+                                    .export   = exported_stuff
+  ) %dopar% {eval(foreach_expression)}
 
   ## message to user
   if (verbose) {
@@ -948,8 +952,7 @@ makeUniqueRows <- function (
 #'   analysis_list <- performAnalyses(
 #'     scenario_list      = trial_data,
 #'     target_rates       = rep(0.5, 3),
-#'     n_mcmc_iterations  = 100,
-#'     n_cores            = 1L)
+#'     n_mcmc_iterations  = 100)
 #'
 #'   save_info     <- saveAnalyses(analysis_list)
 #'   analysis_list <- loadAnalyses(scenario_numbers = save_info$scenario_numbers,
@@ -1035,8 +1038,7 @@ saveAnalyses <- function (
 #'   analysis_list <- performAnalyses(
 #'     scenario_list      = trial_data,
 #'     target_rates       = rep(0.5, 3),
-#'     n_mcmc_iterations  = 100,
-#'     n_cores            = 1L)
+#'     n_mcmc_iterations  = 100)
 #'
 #'   save_info     <- saveAnalyses(analysis_list)
 #'   analysis_list <- loadAnalyses(scenario_numbers = save_info$scenario_numbers,

@@ -34,8 +34,7 @@ This function loads an analysis performed with
   analysis_list <- performAnalyses(
     scenario_list      = trial_data,
     target_rates       = rep(0.5, 3),
-    n_mcmc_iterations  = 100,
-    n_cores            = 1L)
+    n_mcmc_iterations  = 100)
 
   save_info     <- saveAnalyses(analysis_list)
   analysis_list <- loadAnalyses(scenario_numbers = save_info$scenario_numbers,

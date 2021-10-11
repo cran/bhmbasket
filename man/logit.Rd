@@ -16,7 +16,7 @@ logit of p
 This function returns the logit of the input argument.
 }
 \details{
-This function is a shorthand for `stats::binomial()$linkfun`
+This function is an alias for `stats::binomial()$linkfun`
 }
 \examples{
 logit(invLogit(0.3))

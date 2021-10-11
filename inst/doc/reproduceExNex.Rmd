@@ -149,7 +149,7 @@ The number of subjects is 20 each for the first two cohorts and 10 each for the 
 The scenarios are simulated with the function `simulateScenarios()`.
 There are seven different scenarios presented in Table V.
 In this example, the Scenarios 1, 3, and 4 are reproduced.
-For each scenario 10000 basket trial realizations are simulated:
+For each scenario, 10000 basket trial realizations are simulated:
 ```{r simulateScenarios}
 scenarios_list <- simulateScenarios(
   n_subjects_list     = list(c(20, 20, 10, 10),

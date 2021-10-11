@@ -7,22 +7,24 @@
 simulateScenarios(
   n_subjects_list,
   response_rates_list,
-  scenario_numbers = seq_along(n_subjects_list),
+  scenario_numbers = seq_along(response_rates_list),
   n_trials = 10000
 )
 }
 \arguments{
 \item{n_subjects_list}{A list that contains for each scenario a vector for
-the number of subjects per cohort}
+the number of subjects per cohort.
+A single vector can be provided if all scenarios should have the same number of subjects.}
 
 \item{response_rates_list}{A list that contains for each scenario a vector for
-the response rates per cohort}
+the response rates per cohort.}
 
 \item{scenario_numbers}{A vector of positive integers naming the scenarios,
-Default: \code{seq_along(n_subjects_list)}}
+Default: \code{seq_along(response_rates_list)}}
 
 \item{n_trials}{An integer indicating the number of trial simulations per response rates,
-Default: \code{10000}}
+Default: \code{10000}. If \code{n_trials} is present in \code{.GlobalEnv} and \code{missing(n_trials)},
+the globally available value will be used.}
 }
 \value{
 An object of class \code{scenario_list} with the scenario data for each specified scenario.

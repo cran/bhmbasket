@@ -1,4 +1,3 @@
-
 ### numeric ####
 
 is.positive.numeric <- function (x) {
@@ -75,4 +74,42 @@ is.single.positive.wholenumber <- function (x, tol = .Machine$double.eps^0.5) {
 
   return (is.single.wholenumber(x, tol = tol) && all(is.positive.wholenumber(x, tol = tol)))
 
+}
+
+
+### evidence levels
+
+check.evidence.levels <- function (evidence_levels,
+                                   cohort_names, analyses_list, error_evidence_levels) {
+  
+  if (!identical(length(evidence_levels), length(cohort_names))) stop(simpleError(
+    "The 'evidence_levels' and the 'cohort_names' must have the same length"))
+  
+  if (is.character(evidence_levels)) {
+    
+    mean_index <- evidence_levels == "mean"
+    
+    evidence_levels_numeric <- tryCatch({
+      as.numeric(evidence_levels[!mean_index])
+    }, warning = function(w) w)
+    
+    if (inherits(evidence_levels_numeric, "warning")) stop(simpleError(
+      "The only string allowed for the argument 'evidence_levels' is 'mean'"))
+    
+    
+  } else {
+    
+    evidence_levels_numeric <- evidence_levels
+    
+  }
+  
+  if (!is.numeric.in.zero.one(evidence_levels_numeric)) stop (error_evidence_levels)
+  
+  available_quantiles <- round(analyses_list[[1]]$analysis_parameters$quantiles, 9)
+  asked_quantiles     <- round(1 - evidence_levels_numeric, 9)
+  if (any(!asked_quantiles %in% available_quantiles)) stop (simpleError(paste(
+    "The 'evidence_levels' must have matches",
+    "in the 'evidence_levels' provided to the call performAnalyses()",
+    "that created the 'analyses_list'")))
+  
 }

@@ -16,7 +16,7 @@ Inverse logit of theta
 This function returns the inverse logit of the input argument.
 }
 \details{
-This function is a shorthand for `stats::binomial()$linkinv`
+This function is an alias for `stats::binomial()$linkinv`
 }
 \examples{
 invLogit(logit(0.3))

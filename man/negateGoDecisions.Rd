@@ -4,11 +4,15 @@
 \alias{negateGoDecisions}
 \title{negateGoDecisions}
 \usage{
-negateGoDecisions(go_decisions_list)
+negateGoDecisions(go_decisions_list, overall_min_nogos = "all")
 }
 \arguments{
 \item{go_decisions_list}{An object of class \code{decision_list},
 as returned by \code{\link[bhmbasket]{getGoDecisions}}}
+
+\item{overall_min_nogos}{Either a non-negative integer or the string \code{all}
+for the minimum number of cohort-level NoGo decisions required for
+an overall NoGo decision, Default: \code{all}}
 }
 \value{
 A list of NoGo decisions of class \code{decision_list}

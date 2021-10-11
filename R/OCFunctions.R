@@ -320,6 +320,9 @@ getGoProbabilities <- function (
 #' \code{\link[bhmbasket]{getGoDecisions}}.
 #' @param go_decisions_list An object of class `decision_list`,
 #' as returned by \code{\link[bhmbasket]{getGoDecisions}}
+#' @param overall_min_nogos Either a non-negative integer or the string `all`
+#' for the minimum number of cohort-level NoGo decisions required for
+#' an overall NoGo decision, Default: `all`
 #' @return A list of NoGo decisions of class `decision_list`
 #' @details This function is intended for implementing decision rules with a
 #' consider zone as
@@ -387,7 +390,8 @@ getGoProbabilities <- function (
 #' @export
 negateGoDecisions <- function (
 
-  go_decisions_list
+  go_decisions_list,
+  overall_min_nogos = "all"
 
 ) {
 
@@ -395,23 +399,53 @@ negateGoDecisions <- function (
     simpleError(paste("Please provide an object of class decision_list",
                       "for the argument 'go_decisions_list'"))
 
-  if (missing(go_decisions_list))           stop (error_go_decisions_list)
+  error_overall_min_nogos <- simpleError(
+    paste("Please provide either a non-negative integer or the string 'all'",
+          "for the  'overall_min_nogos'"))
 
-  if (!is.decision_list(go_decisions_list)) stop (error_go_decisions_list)
+  if (missing(go_decisions_list))                      stop (error_go_decisions_list)
+
+  if (!is.decision_list(go_decisions_list))            stop (error_go_decisions_list)
+  if (!identical(overall_min_nogos, "all") &&
+      !is.non.negative.wholenumber(overall_min_nogos)) stop (error_overall_min_nogos)
 
   ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ##
+
+  overall_min_nogos_org <- overall_min_nogos
+  nogo_decisions_list   <- go_decisions_list
 
   for (s in seq_along(go_decisions_list)) {
 
     for (m in seq_along(go_decisions_list[[s]]$decisions_list)) {
 
-      go_decisions_list[[s]]$decisions_list[[m]] <-
+      # nogo_decisions_list[[s]]$decisions_list[[m]] <-
+      #   !nogo_decisions_list[[s]]$decisions_list[[m]]
+      #
+      # if (ncol(nogo_decisions_list[[s]]$decisions_list[[m]]) > 1) {
+      #
+      #   nogo_decisions_list[[s]]$decisions_list[[m]][, 1] <-
+      #     apply(nogo_decisions_list[[s]]$decisions_list[[m]][, -1], 1, all)
+      #
+      # }
+
+      ## negate decisions
+      nogo_decisions_list[[s]]$decisions_list[[m]] <-
         !go_decisions_list[[s]]$decisions_list[[m]]
 
-      if (ncol(go_decisions_list[[s]]$decisions_list[[m]]) > 1) {
+      ## check for overall decisions
+      n_decisions <- ncol(nogo_decisions_list[[s]]$decisions_list[[m]])
 
-        go_decisions_list[[s]]$decisions_list[[m]][, 1] <-
-          apply(go_decisions_list[[s]]$decisions_list[[m]][, -1], 1, all)
+      if (n_decisions > 1) {
+
+        if (identical(overall_min_nogos_org, "all")) {
+
+          overall_min_nogos <- n_decisions - 1L
+
+        }
+
+        nogo_decisions_list[[s]]$decisions_list[[m]][, 1] <-
+          apply(nogo_decisions_list[[s]]$decisions_list[[m]][, -1], 1,
+                function(x) sum(x) >= overall_min_nogos)
 
       }
 
@@ -419,7 +453,7 @@ negateGoDecisions <- function (
 
   }
 
-  return (go_decisions_list)
+  return (nogo_decisions_list)
 
 }
 
@@ -676,46 +710,15 @@ getGoDecisions <- function (
 
   if (any(!cohort_names %in% colnames(analyses_list[[1]]$quantiles_list[[1]][[1]]))) stop (
     simpleError("The specified cohorts do not match the cohorts analyzed in 'analyses_list'"))
-
-  checkEvidenceLevels <- function (evidence_levels) {
-
-    if (!identical(length(evidence_levels), length(cohort_names))) stop(simpleError(
-      "The 'evidence_levels' and the 'cohort_names' must have the same length"))
-
-    if (is.character(evidence_levels)) {
-
-      mean_index <- evidence_levels == "mean"
-
-      evidence_levels_numeric <- tryCatch({
-        as.numeric(evidence_levels[!mean_index])
-      }, warning = function(w) w)
-
-      if (inherits(evidence_levels_numeric, "warning")) stop(simpleError(
-        "The only string allowed for the argument 'evidence_levels' is 'mean'"))
-
-
-    } else {
-
-      evidence_levels_numeric <- evidence_levels
-
-    }
-
-    if (!is.numeric.in.zero.one(evidence_levels_numeric)) stop (error_evidence_levels)
-
-    available_quantiles <- round(analyses_list[[1]]$analysis_parameters$quantiles, 9)
-    asked_quantiles     <- round(1 - evidence_levels_numeric, 9)
-    if (any(!asked_quantiles %in% available_quantiles)) stop (simpleError(paste(
-      "The 'evidence_levels' must have matches",
-      "in the 'evidence_levels' provided to the call performAnalyses()",
-      "that created the 'analyses_list'")))
-
-  }
+  
   if (is.list(evidence_levels)) {
     for (i in seq_along(evidence_levels)) {
-      checkEvidenceLevels(evidence_levels[[i]])
+      check.evidence.levels(evidence_levels[[i]],
+                            cohort_names, analyses_list, error_evidence_levels)
     }
   } else {
-    checkEvidenceLevels(evidence_levels)
+    check.evidence.levels(evidence_levels,
+                          cohort_names, analyses_list, error_evidence_levels)
   }
 
   check_boundary_rules <- tryCatch({
@@ -917,7 +920,8 @@ getEstimates <- function (
   error_analyses_list <- simpleError(
     "Please provide an object of class analysis_list for the argument 'analyses_list'")
   error_add_parameters  <- simpleError(paste(
-    "Please provide a either NULL or vector of strings for the argument 'add_parameters'"))
+    "Please provide a either NULL or vector of strings for the argument 'add_parameters'",
+    "naming additional parameters of the applied model(s)"))
   error_point_estimator <- simpleError(
     "Please provide either 'median' or 'mean' for the argument 'point_estimator'")
   error_alpha_level <- simpleError(
@@ -951,6 +955,9 @@ getEstimates <- function (
 
   cohort_names <- getAllCohortNames(analyses_list)
   diff_indices <- grepl("diff", cohort_names)
+
+  ## Filter for cohort names in add_parameters
+  add_parameters <- add_parameters[!grepl("p_", add_parameters)]
 
   ## Lists to hold the results
   results_list <- vector(mode = "list", length = length(analyses_list))
@@ -1182,10 +1189,27 @@ getAllCohortNames <- function (
 
 ) {
 
-  post_names <- colnames(analyses_list[[1]]$quantiles_list[[1]][[1]])
-  indices    <- grep("p_", post_names)
-
-  return (post_names[indices])
+  # post_names <- colnames(analyses_list[[1]]$quantiles_list[[1]][[1]])
+  # indices    <- grep("p_", post_names)
+  # 
+  # return (post_names[indices])
+  
+  Reduce(intersect,
+         
+         sapply(analyses_list, function (x) {
+           
+           lapply(x$quantiles_list, function (y) {
+             
+             post_names <- Reduce(intersect, lapply(y, colnames))
+             indices    <- grep("p_", post_names)
+             
+             post_names[indices]
+             
+           })
+           
+         })
+         
+  )
 
 }
 

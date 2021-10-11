@@ -292,13 +292,15 @@ getResponders <- function (
 #' @description This function creates scenarios for the analysis with
 #' \code{\link[bhmbasket]{performAnalyses}}.
 #' @param n_subjects_list A list that contains for each scenario a vector for
-#' the number of subjects per cohort
+#' the number of subjects per cohort.
+#' A single vector can be provided if all scenarios should have the same number of subjects.
 #' @param response_rates_list A list that contains for each scenario a vector for
-#' the response rates per cohort
+#' the response rates per cohort.
 #' @param scenario_numbers A vector of positive integers naming the scenarios,
-#' Default: `seq_along(n_subjects_list)`
+#' Default: `seq_along(response_rates_list)`
 #' @param n_trials An integer indicating the number of trial simulations per response rates,
-#' Default: `10000`
+#' Default: `10000`. If `n_trials` is present in `.GlobalEnv` and `missing(n_trials)`,
+#' the globally available value will be used.
 #' @return An object of class `scenario_list` with the scenario data for each specified scenario.
 #' @details The function simulates trials with binary outcome for each scenario.
 #' Integer values for the response rates will be treated as observed outcomes.
@@ -328,7 +330,7 @@ simulateScenarios <- function (
 
   n_subjects_list,
   response_rates_list,
-  scenario_numbers = seq_along(n_subjects_list),
+  scenario_numbers = seq_along(response_rates_list),
 
   n_trials         = 1e4
 
@@ -347,11 +349,16 @@ simulateScenarios <- function (
   if (missing(n_subjects_list))                                stop (error_n_subjects_list)
   if (missing(response_rates_list))                            stop (error_response_rates_list)
 
-  if (!is.list(n_subjects_list) ||
-      any(!sapply(n_subjects_list, is.positive.wholenumber)))  stop (error_n_subjects_list)
-
   if (!is.list(response_rates_list) ||
       any(!sapply(response_rates_list, is.numeric)))           stop (error_response_rates_list)
+
+  ## put n_subjects as a list if provided as vector
+  if (!is.list(n_subjects_list)) {
+    n_subjects_list <- rep(list(n_subjects_list), length(response_rates_list))
+  }
+
+  if (!is.list(n_subjects_list) ||
+      any(!sapply(n_subjects_list, is.positive.wholenumber)))  stop (error_n_subjects_list)
 
   if (!is.positive.wholenumber(scenario_numbers))              stop (error_scenario_numbers)
 
@@ -380,6 +387,11 @@ simulateScenarios <- function (
   if (any(!sapply(response_rates_list, function (x) {
     is.numeric(x) & x > 0 & x < 1 |
       is.wholenumber(x) & (x == 0 | x >= 1)})))                stop(error_response_rates_list)
+
+  ## check whether n_trials is present in global environment
+  if ("n_trials" %in% ls(envir = .GlobalEnv) & missing(n_trials)) {
+    n_trials <- get("n_trials", envir = .GlobalEnv)
+  }
 
   if (!is.single.positive.wholenumber(n_trials))               stop (error_n_trials)
 
@@ -699,12 +711,16 @@ continueRecruitment <- function (
 
   }, error = function (e) e)
 
+  if (!is.decision_list(decisions_list))       stop (error_decisions_list)
+  if (inherits(method_name, "error"))          stop (error_method_name)
+
+  if (!is.list(n_subjects_add_list)) {
+    n_subjects_add_list <- rep(list(n_subjects_add_list), length(decisions_list))
+  }
+
   if (!is.list(n_subjects_add_list) ||
       any(!sapply(n_subjects_add_list, is.non.negative.wholenumber)))
                                                stop (error_n_subjects_add_list)
-
-  if (!is.decision_list(decisions_list))       stop (error_decisions_list)
-  if (inherits(method_name, "error"))          stop (error_method_name)
 
   ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ###
   ## Note: also some checks hereafter
@@ -738,7 +754,7 @@ continueRecruitment <- function (
 
     n_subjects_add <- n_subjects_add_list[[s]]
     response_rates <- decisions_list[[s]]$scenario_data$response_rates
-    cohort_names   <- substr(colnames(response_rates), 4, nchar(colnames(response_rates)))
+    cohort_names   <- sub("rr_", "", colnames(response_rates))
 
     if (any(response_rates > 0 & response_rates < 1)) {
 
@@ -782,8 +798,10 @@ continueRecruitment <- function (
     if ("overall" %in% colnames(go_decisions)) {
       go_decisions <- go_decisions[, -which(colnames(go_decisions) == "overall")]
     }
-    if (!identical(ncol(go_decisions), max(index_new))) stop (simpleError(
-      "There must be a decision for each cohort in the 'decisions_list'"))
+    if (!all(index_new %in% as.numeric(sub("decision_", "", colnames(go_decisions))))) {
+      stop (simpleError(
+        "There must be a decision for each recruiting cohort in the 'decisions_list'"))
+    }
 
     go_decisions <- go_decisions[, index_new]
 
