@@ -1,5 +1,3 @@
-# library(sinew)
-# makeOxygen(getUniqueTrials)
 
 #' @title createTrial
 #' @description This function creates an object of class `scenario_list`
@@ -67,9 +65,6 @@ getScenario <- function (
 
 ) {
 
-  # n_cores      = parallel::detectCores() - 1L # old argument that is no longer needed
-  # "%dopar%" <- foreach::"%dopar%"
-
   response_rates           <- convertVector2Matrix(response_rates)
   colnames(response_rates) <- paste0("rr_", cohort_names)
 
@@ -92,8 +87,6 @@ getScenario <- function (
       response_rates = response_rates[, index_new],
       n_subjects     = n_subjects[index_new],
       n_trials       = n_trials)
-      # n_cores        = n_cores,
-      # seed           = seed)
 
   } else {
 
@@ -171,9 +164,6 @@ getScenario <- function (
                         previous_analyses = list(go_decisions   = previous_gos,
                                                  post_quantiles = NULL),
                         n_trials          = n_trials)
-                        # seed              = seed)
-
-  # class(scenario_data) <- "scenario_data"
 
   return (scenario_data)
 
@@ -397,15 +387,8 @@ simulateScenarios <- function (
 
   ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ###
 
-  # cat(format(Sys.time(), "%m/%d/%y"), " Simulating Scenarios\n", sep = "")
-
   scenario_list    <- vector(mode = "list", length = length(scenario_numbers))
   for (s in seq_along(scenario_numbers)) {
-
-    # start_time  <- Sys.time()
-    # out_message <- paste0(format(start_time, "   %H:%M"),
-    #                       " Simulating Scenario ", scenario_numbers[s], " ...")
-    # cat(out_message, rep(".", 33 + nchar(max(scenario_numbers)) - nchar(out_message)), sep = "")
 
     scenario_list[[s]] <- getScenario(
       n_subjects          = n_subjects_list[[s]],
@@ -413,10 +396,6 @@ simulateScenarios <- function (
       n_trials            = n_trials)
 
     scenario_list[[s]]$scenario_number <- scenario_numbers[s]
-
-    # cat(" Finished after ", round(Sys.time() - start_time, 1), " ",
-    #     units(Sys.time() - start_time), ".\n", sep = "")
-    # rm(start_time)
 
   }
 
@@ -432,21 +411,6 @@ is.scenario_list <- function (x) {
   if (missing(x)) stop ("Please provide an object for the argument 'x'")
 
   inherits(x, "scenario_list")
-
-  # ## x must be list
-  # if (!is.list(x)) {
-  #   warning ("x must be list")
-  #   return (FALSE)
-  # }
-  #
-  # is_scenario_data <- sapply(x, is.scenario_data)
-  #
-  # if (any(!is_scenario_data)) {
-  #   warning (paste0("The items of x with the following indices are not scenario_data", !which(is_scenario_data)))
-  #   return (FALSE)
-  # }
-  #
-  # return (TRUE)
 
 }
 
@@ -600,38 +564,6 @@ getRespondersNonParallel <- function (
 
 }
 
-
-getRespondersParallel <- function (
-
-  response_rates,
-  n_subjects,
-
-  n_trials,
-  n_cores = parallel::detectCores() - 1L
-  # seed    = as.numeric(Sys.time())
-
-) {
-
-  "%dopar%" <- foreach::"%dopar%"
-
-  ## somehow %dopar% does not default to %do% when no connection open
-  doParallel::registerDoParallel(n_cores)
-  on.exit(doParallel::stopImplicitCluster())
-  # if (n_cores > 1) {
-  #   doParallel::registerDoParallel(n_cores)
-  #   on.exit(doParallel::stopImplicitCluster())
-  # }
-  n_responders <- foreach::foreach(k = seq_len(n_trials),
-                                   .combine = rbind,
-                                   .export = c("getResponders")) %dopar% {
-                                     getResponders(response_rates = response_rates,
-                                                   n_subjects     = n_subjects)}
-                                                   # seed           = seed + k)}
-
-  return (n_responders)
-
-}
-
 #' @title continueRecruitment
 #' @md
 #' @description This function continues the recruitment of subjects for a set of scenarios
@@ -661,8 +593,7 @@ getRespondersParallel <- function (
 #' interim_analyses <- performAnalyses(
 #'   scenario_list       = interim_scenarios,
 #'   target_rates        = rep(0.5, 3),
-#'   n_mcmc_iterations   = 100,
-#'   n_cores             = 1L)
+#'   n_mcmc_iterations   = 100)
 #'
 #' interim_gos <- getGoDecisions(
 #'   analyses_list       = interim_analyses,
@@ -732,8 +663,6 @@ continueRecruitment <- function (
     stop (simpleError("The lengths of 'n_subjects_add_list' and 'decisions_list' must be equal"))
   }
 
-  # cat(format(Sys.time(), "%m/%d/%y"), " Continuing Recruitment\n", sep = "")
-
   scenario_list <- vector(mode = "list", length = length(decisions_list))
   names(scenario_list) <- paste0("scenario_", scenario_numbers)
   for (s in seq_along(scenario_list)) {
@@ -744,11 +673,6 @@ continueRecruitment <- function (
       stop (simpleError("Selected method_name not analyzed"))
 
     }
-
-    # start_time  <- Sys.time()
-    # out_message <- paste0(format(start_time, "   %H:%M"),
-    #                       " Simulating Scenario ", scenario_numbers[s], " ...")
-    # cat(out_message, rep(".", 33 + nchar(max(scenario_numbers)) - nchar(out_message)), sep = "")
 
     ## get new data, i.e. get new responders and new number of subjects per trial
 
@@ -778,38 +702,44 @@ continueRecruitment <- function (
     }
 
     n_trials <- decisions_list[[s]]$scenario_data$n_trials
-    # seed     <- decisions_list[[s]]$scenario_data$seed + n_trials + 1
 
     add_scenario <- getScenario(
       n_subjects     = n_subjects_add,
       response_rates = response_rates_new,
       cohort_names   = cohort_names_new,
       n_trials       = n_trials)
-      # seed           = seed)
-
-    n_responders_add <- add_scenario$n_responders
-    n_subjects_add   <- add_scenario$n_subjects
 
     ## Combine with existing data
 
+    ## get previous decisions
     go_decisions <- decisions_list[[s]]$decisions_list[[method_name]]
     previous_gos <- go_decisions
 
     if ("overall" %in% colnames(go_decisions)) {
+      overall_gos  <- go_decisions[, which(colnames(go_decisions) == "overall")]
       go_decisions <- go_decisions[, -which(colnames(go_decisions) == "overall")]
+    } else {
+      overall_gos <- rep(TRUE, nrow(go_decisions))
     }
     if (!all(index_new %in% as.numeric(sub("decision_", "", colnames(go_decisions))))) {
       stop (simpleError(
         "There must be a decision for each recruiting cohort in the 'decisions_list'"))
     }
 
-    go_decisions <- go_decisions[, index_new]
-
+    ## pick only cohorts that need updating
+    go_decisions <- go_decisions[overall_gos, index_new]
+    
+    ## additional subjects and responders, only those that have overall go
+    n_responders_add <- add_scenario$n_responders[overall_gos, ] * go_decisions
+    n_subjects_add   <- add_scenario$n_subjects[overall_gos, ] * go_decisions
+    
+    ## existing cohorts that need updating
     n_responders <- decisions_list[[s]]$scenario_data$n_responders
     n_subjects   <- decisions_list[[s]]$scenario_data$n_subjects
 
-    n_responders[, index_new] <- n_responders[, index_new] + go_decisions * n_responders_add
-    n_subjects[, index_new]   <- n_subjects[, index_new] + go_decisions * n_subjects_add
+    ## combine, only for cohorts that have overall go and need updating
+    n_responders[overall_gos, index_new] <- n_responders[overall_gos, index_new] + n_responders_add
+    n_subjects[overall_gos, index_new]   <- n_subjects[overall_gos, index_new] + n_subjects_add
 
     ## Saving Scenario
 
@@ -820,14 +750,9 @@ continueRecruitment <- function (
       previous_analyses = list(go_decisions   = previous_gos,
                                post_quantiles = decisions_list[[s]]$analysis_data$quantiles_list),
       n_trials          = n_trials)
-      # seed              = seed)
 
     scenario_list[[s]]$scenario_number <-
       decisions_list[[s]]$scenario_data$scenario_number
-
-    # cat(" Finished after ", round(Sys.time() - start_time, 1), " ",
-    #     units(Sys.time() - start_time), ".\n", sep = "")
-    # rm(start_time)
 
   }
 

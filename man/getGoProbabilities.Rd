@@ -35,8 +35,7 @@ scenarios_list <- simulateScenarios(
 analyses_list <- performAnalyses(
   scenario_list       = scenarios_list,
   target_rates        = rep(0.5, 2),
-  n_mcmc_iterations   = 100,
-  n_cores             = 1L)
+  n_mcmc_iterations   = 100)
 
 go_decisions_list <- getGoDecisions(
   analyses_list       = analyses_list,

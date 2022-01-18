@@ -4,7 +4,7 @@ author: "Stephan Wojciekowski"
 date: '`r format(Sys.time(), "%B %d, %Y")`'
 output: rmarkdown::html_vignette
 vignette: >
-  %\VignetteIndexEntry{reproduceExNex}
+  %\VignetteIndexEntry{Reproducing Parts of Neuenschwander et al. (2016)}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 references:

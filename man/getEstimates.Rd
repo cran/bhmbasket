@@ -54,8 +54,7 @@ The latter two models can also access the posterior weights
     scenario_list       = scenarios_list,
     target_rates        = c(0.1, 0.1, 0.1),
     calc_differences    = matrix(c(3, 2, 2, 1), ncol = 2),
-    n_mcmc_iterations   = 100,
-    n_cores             = 1L)
+    n_mcmc_iterations   = 100)
 
   getEstimates(analyses_list)
   getEstimates(analyses_list   = analyses_list,
@@ -70,8 +69,7 @@ The latter two models can also access the posterior weights
   outcome_analysis <- performAnalyses(
     scenario_list       = outcome,
     target_rates        = c(0.1, 0.1, 0.1),
-    n_mcmc_iterations   = 100,
-    n_cores             = 1L)
+    n_mcmc_iterations   = 100)
 
   getEstimates(outcome_analysis)
   getEstimates(analyses_list  = outcome_analysis,

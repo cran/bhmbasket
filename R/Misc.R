@@ -118,8 +118,7 @@ convertVector2Matrix <- function (vector) {
 #' analyses_list <- performAnalyses(
 #'   scenario_list       = scenarios_list,
 #'   target_rates        = rep(0.5, 3),
-#'   n_mcmc_iterations   = 100,
-#'   n_cores             = 1L)
+#'   n_mcmc_iterations   = 100)
 #'
 #' scaleRoundList(
 #'   list         = getEstimates(analyses_list),
@@ -280,4 +279,44 @@ listPerMethod <- function (
 
   return (out_list)
 
+}
+
+# apply(x, 1, rlang::hash)
+getHashKeys <- function (x) {
+  
+  x <- convertVector2Matrix(x)
+  
+  if (is.null(colnames(x))) {
+    
+    colnames_x <- as.character(paste0("x", seq_len(ncol(x))))
+      
+  } else {
+    
+    colnames_x <- colnames(x)
+    
+  }
+  
+  apply(x, 1, function (y) paste0(colnames_x, ":", as.character(y), collapse = "|"))
+  
+}
+
+## Code inspired by https://www.r-bloggers.com/2019/01/hash-me-if-you-can/ 
+createHashTable <- function (keys, values, size = length(keys)) {
+  
+  # initialize environment to store key - value assignments, i.e. hash table
+  hash <- new.env(hash = TRUE, parent = emptyenv(), size = length(keys))
+  
+  # assign values to keys
+  assignHashes <- Vectorize(assign, vectorize.args = c("x", "value"))
+  assignHashes(x = keys, value = values, envir = hash)
+  
+  return (hash)
+  
+}
+
+## Code inspired by https://www.r-bloggers.com/2019/01/hash-me-if-you-can/ 
+getHashValues <- function(search_keys, hash_table) {
+  
+  unname(mget(search_keys, hash_table))
+  
 }

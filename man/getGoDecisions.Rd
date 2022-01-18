@@ -82,8 +82,7 @@ scenarios_list <- simulateScenarios(
 analyses_list <- performAnalyses(
   scenario_list      = scenarios_list,
   target_rates       = rep(0.5, 3),
-  n_mcmc_iterations  = 100,
-  n_cores            = 1L)
+  n_mcmc_iterations  = 100)
 
 ## Decision rule for more than one cohort
 decisions_list <- getGoDecisions(

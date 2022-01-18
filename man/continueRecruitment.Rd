@@ -42,8 +42,7 @@ interim_scenarios <- simulateScenarios(
 interim_analyses <- performAnalyses(
   scenario_list       = interim_scenarios,
   target_rates        = rep(0.5, 3),
-  n_mcmc_iterations   = 100,
-  n_cores             = 1L)
+  n_mcmc_iterations   = 100)
 
 interim_gos <- getGoDecisions(
   analyses_list       = interim_analyses,

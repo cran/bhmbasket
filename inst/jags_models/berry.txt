@@ -1,0 +1,26 @@
+
+      ## Bayesian Hierarchical Model: Berry
+      
+      model {
+      
+        ## Prior
+        mu       ~ dnorm(mean_mu, precision_mu)
+        
+        tau      ~ dnorm(0, precision_tau)I(0.001, )
+        tau_prec <- pow(tau, -2)
+        
+        for (j in 1:J) {
+        
+          ## Prior
+          theta[j] ~ dnorm(mu, tau_prec)
+          
+          ## Likelihood
+          logit(p[j]) <- theta[j] + logit(p_t[j])
+          r[j] ~ dbin(p[j], n[j])
+          
+          # ## Predict future responders
+          # r2[j] ~ dbin(p[j], m[j])
+        
+        }
+        
+      }

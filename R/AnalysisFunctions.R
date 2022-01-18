@@ -1,5 +1,4 @@
-# library(sinew)
-# makeOxygen(LoadScenario)
+
 
 prepareAnalysis <- function (
 
@@ -18,7 +17,8 @@ prepareAnalysis <- function (
                    p_t           = target_rates,
                    J             = length(target_rates))
 
-    j_model_file <- writeTempModel(method_name = "berry")
+    # j_model_file <- writeTempModel(method_name = "berry")
+    j_model_file <- getModelFile(method_name = "berry")
 
     j_parameters <- c("p", "mu", "tau")
 
@@ -43,13 +43,12 @@ prepareAnalysis <- function (
 
     if (method_name == "exnex") {
 
-      j_model_file    <- writeTempModel(method_name = "exnex")
+      j_model_file    <- getModelFile(method_name = "exnex")
 
     } else {
 
       j_data$p_target <- target_rates
-
-      j_model_file    <- writeTempModel(method_name = "exnex_adj")
+      j_model_file    <- getModelFile(method_name = "exnex_adj")
 
     }
 
@@ -60,8 +59,8 @@ prepareAnalysis <- function (
     ## For methods "stratified" and "pooled" no MCMC simulations are necessary,
     ## as the posterior response rates of the cohorts follow known beta distributions.
 
-    j_model_file <- "dummy path to model"
-    j_parameters <- "dummy parameters"
+    j_model_file <- "dummy path to JAGS model"
+    j_parameters <- "dummy JAGS parameters"
     j_data       <- prior_parameters
 
   } else {
@@ -198,8 +197,6 @@ getPostQuantiles <- function (
 
   ## MCMC Parameters
   n_mcmc_iterations = 1e4,
-  # seed              = as.numeric(Sys.time()),
-  # n_cores           = parallel::detectCores() - 1L,
 
   ## Where to save one of the posterior response rates approximations provided by JAGS
   save_path         = NULL,
@@ -223,23 +220,15 @@ getPostQuantiles <- function (
   }
 
   ## Run parallel loops
-  ## prepare foreach loop over k
+  ## prepare foreach loop over 
 
-  # if (isTRUE(all.equal(n_analyses, 1))) {
-  #   n_cores <- 1L
-  # }
-
-  exported_stuff <- c(#"seed",
-                      "scenario_data", "j_data", "post_mean", "quantiles",
+  exported_stuff <- c("scenario_data", "j_data", "post_mean", "quantiles",
                       "calc_differences", "j_parameters", "j_model_file", "n_mcmc_iterations",
                       "getPosteriors", "save_path", "save_trial", "method_name",
                       "posteriors2Quantiles",
                       "qbetaDiff")
 
   foreach_expression <- quote({
-
-    # ## Set seed that changes for each iteration
-    # set.seed(seed + k)
 
     ##  Retrieve the likelihood data for the kth unique simulation
     j_data$r <- as.numeric(scenario_data$n_responders[k, ])
@@ -395,28 +384,14 @@ getPostQuantiles <- function (
     return (posterior_quantiles)
 
   })
-
-  # invisible(utils::capture.output({
-  # 
-  #   suppressMessages({
-  # 
-  #     posterior_quantiles_list <- foreach::foreach(k = seq_len(n_analyses),
-  #                                                  .verbose  = FALSE,
-  #                                                  .packages = c("R2jags"),
-  #                                                  .export   = exported_stuff
-  #     ) %dopar% {eval(foreach_expression)}
-  # 
-  #   }, classes = c("message"))
-  # 
-  # }))
   
+  "%dorng%" <- doRNG::"%dorng%"
   "%dopar%" <- foreach::"%dopar%"
-  
   posterior_quantiles_list <- foreach::foreach(
     k = seq_len(n_analyses),
     .verbose  = FALSE,
     .packages = c("R2jags"),
-    .export   = exported_stuff) %dopar% {eval(foreach_expression)}
+    .export   = exported_stuff) %dorng% {eval(foreach_expression)}
 
   return (posterior_quantiles_list)
 
@@ -545,18 +520,14 @@ performAnalyses <- function (
                       "of cohorts"))
   error_n_mcmc_iterations <-
     simpleError("Please provide a positive integer for the argument 'n_mcmc_iterations'")
-  # error_n_cores <-
-  #   simpleError("Please provide a positive integer for the argument 'n_cores'")
-  # error_seed <-
-  #   simpleError("Please provide a numeric for the argument 'seed'")
   error_verbose <-
     simpleError("Please provide a logical for the argument 'verbose'")
 
-  warning_n_cores <- "The arguemnt 'n_cores' is deprecated as of version 0.9.3."
+  warning_n_cores <- "The argument 'n_cores' is deprecated as of version 0.9.3."
   warning_seed    <- "The argument 'seed' is deprecated as of version 0.9.3."
-
-  if (!missing(n_cores)) simpleWarning(warning_n_cores)
-  if (!missing(seed))    simpleWarning(warning_seed)
+  
+  if (!missing(n_cores)) warning(warning_n_cores)
+  if (!missing(seed))    warning(warning_seed)
 
   if (missing(scenario_list)) stop (error_scenario_list)
 
@@ -618,16 +589,14 @@ performAnalyses <- function (
   }
 
   if (!is.single.positive.wholenumber(n_mcmc_iterations)) stop (error_n_mcmc_iterations)
-  # if (!is.single.positive.wholenumber(n_cores))           stop (error_n_cores)
-  # if (!is.single.numeric(seed))                           stop (error_seed)
   if (!is.logical(verbose))                               stop (error_verbose)
 
   ## check for parallel backend
   "%dopar%" <- foreach::"%dopar%"
   if(!foreach::getDoParRegistered()) {
+    
     message("\nCaution: No parallel backend detected for the 'foreach' framework.",
-            " For execution in parallel, register a doPar parallel backend,",
-            " e.g. with:\n",
+            " For execution in parallel, register a parallel backend, e.g. with:\n",
             "   n_cores <- parallel::detectCores() - 1L\n",
             "   cl      <- parallel::makeCluster(n_cores)\n",
             "   doParallel::registerDoParallel(cl)\n")
@@ -653,67 +622,37 @@ performAnalyses <- function (
   ## get scenario numbers
   scenario_numbers <- sapply(scenario_list, function (x) x$scenario_number)
 
-  ## get unique trials for all scenarios
-  all_scenarios_n_responders <- do.call(rbind,
-                                        lapply(scenario_list, function (x) x$n_responders))
-  all_scenarios_n_subjects   <- do.call(rbind,
-                                        lapply(scenario_list, function (x) x$n_subjects))
-  all_scenarios_overall_gos  <-
-    do.call(rbind, lapply(scenario_list, function (x) x$previous_analyses$go_decisions))[, 1]
+  ## get unique trials over all scenarios
+  all_scenarios_n_responders <- do.call(rbind, lapply(scenario_list, function (x) x$n_responders))
+  all_scenarios_n_subjects   <- do.call(rbind, lapply(scenario_list, function (x) x$n_subjects))
+  all_scenarios_overall_gos  <- do.call(rbind, lapply(scenario_list, function (x) 
+    x$previous_analyses$go_decisions))[, 1]
 
   n_cohorts     <- ncol(all_scenarios_n_responders)
-  trials_unique <- makeUniqueRows(cbind(all_scenarios_n_responders, all_scenarios_n_subjects,
+  
+  trials_unique <- makeUniqueRows(cbind(all_scenarios_n_responders,
+                                        all_scenarios_n_subjects,
                                         go_flag = all_scenarios_overall_gos))
 
-  ## analyze only unique trials that have not been previously analyzed,
-  ## i.e. trials that were updated with continueRecruitment(),
-  ## i.e. trials that have an overall go decision from a previous decision rule
-  ## i.e. trials that have quantiles stored for each cohort that is to be analysed
-  applicable_previous_trials <-
-    ## check that in each scenario the same analysis methods were analyzed previously
-    all(sapply(seq_along(scenario_list), function (i) {
-      isTRUE(all.equal(names(scenario_list[[i]]$previous_analyses$post_quantiles),
-                       names(scenario_list[[1]]$previous_analyses$post_quantiles)))
-    })) &
-    ## check that the current analysis method names match the method names of the previous analyses
-    isTRUE(all.equal(names(scenario_list[[1]]$previous_analyses$post_quantiles), method_names)) &
-    ## check that the stored quantiles are the same across all scenarios
-    all(sapply(seq_along(scenario_list), function (i) {
-      isTRUE(all.equal(rownames(scenario_list[[i]]$previous_analyses$post_quantiles[[1]][[1]]),
-                       rownames(scenario_list[[1]]$previous_analyses$post_quantiles[[1]][[1]])))
-    })) &
-    ## check that the new quantiles are within the stored quantiles
-    all(paste0(as.character(quantiles * 100), "%") %in%
-          rownames(scenario_list[[1]]$previous_analyses$post_quantiles[[1]][[1]])) &
-    ## check that there are stored quantiles for each cohort that is to be analysed
-    all(paste0("p_", seq_len(n_cohorts)) %in%
-          colnames(scenario_list[[1]]$previous_analyses$post_quantiles[[1]][[1]]))
+  ## analyze only unique trials that have not been previously analyzed
+  applicable_previous_trials <- applicablePreviousTrials(
+    scenario_list    = scenario_list,
+    method_names     = method_names,
+    quantiles        = quantiles,
+    n_cohorts        = n_cohorts,
+    calc_differences = calc_differences)
 
-  ## check that all differences have been previously calculated
-  if (!is.null(calc_differences)) {
-
-    applicable_previous_trials <- applicable_previous_trials &
-      all(apply(calc_differences, 1, function (x) {
-        paste0("p_diff_", paste0(as.character(x), collapse = ""))
-      }) %in% colnames(scenario_list[[1]]$previous_analyses$post_quantiles[[1]][[1]]))
-
-  }
-
+  ## only get previous go indices if all conditions for previous trials are met
   if (applicable_previous_trials) {
-
-    go_trial_indices <- trials_unique[, ncol(trials_unique)] > 0
-
+    calc_trial_indices <- trials_unique[, ncol(trials_unique)] > 0
   } else {
-
-    go_trial_indices <- rep(TRUE, nrow(trials_unique))
-
+    calc_trial_indices <- rep(TRUE, nrow(trials_unique))
   }
 
-  trials_unique <- trials_unique[, -ncol(trials_unique)]
-
-  ## save resulting unique number of responders and number of subjects
-  n_responders  <- trials_unique[go_trial_indices, seq_len(n_cohorts)]
-  n_subjects    <- trials_unique[go_trial_indices, seq_len(n_cohorts) + n_cohorts]
+  ## get resulting unique number of responders and number of subjects
+  trials_unique_calc <- trials_unique[calc_trial_indices, -ncol(trials_unique)]
+  n_responders       <- trials_unique_calc[, seq_len(n_cohorts)]
+  n_subjects         <- trials_unique_calc[, seq_len(n_cohorts) + n_cohorts]
 
   ## message to user
   if (verbose) {
@@ -744,12 +683,10 @@ performAnalyses <- function (
 
     ## message to user
     if (verbose) {
-
       start_time  <- Sys.time()
       out_message <- paste0(format(start_time, "   %H:%M", digits = 1),
                             " - with ", firstUpper(method_names[n]), " ...")
       message(out_message, rep(".", 33 - nchar(out_message)))
-
     }
 
     ## prepare analysis
@@ -770,136 +707,187 @@ performAnalyses <- function (
       j_model_file      = prepare_analysis$j_model_file,
       j_data            = prepare_analysis$j_data,
       n_mcmc_iterations = n_mcmc_iterations,
-      # seed              = seed,
-      # n_cores           = n_cores,
       save_path         = NULL,
       save_trial        = NULL)
 
     ## message to user
     if (verbose) {
-
       message("             finished after ", round(Sys.time() - start_time, 1), " ",
               units(Sys.time() - start_time), ".")
       rm(start_time)
-
     }
 
   }
-
-  ## Process scenarios
 
   ## message to user
   if (verbose) {
-
     start_time  <- Sys.time()
     message("         Processing Scenarios ...")
+  }
+  
+  ## Process scenarios
+  scenario_method_quantiles_list <- mapUniqueTrials(
+    scenario_list              = scenario_list,
+    method_quantiles_list      = method_quantiles_list,
+    trials_unique_calc         = trials_unique_calc,
+    applicable_previous_trials = applicable_previous_trials)
 
+  ## message to user
+  if (verbose) {
+    message("             finished after ", round(Sys.time() - start_time, 1), " ",
+            units(Sys.time() - start_time), ".")
+    rm(start_time)
   }
 
-  ## prepare foreach
-  exported_stuff     <- c("scenario_list", "trials_unique", "go_trial_indices",
-                          "applicable_previous_trials", "method_names", "method_quantiles_list",
-                          "prior_parameters_list", "quantiles", "n_mcmc_iterations",
-                          "getRowIndexOfVectorInMatrix")
-
-  # if (identical(length(scenario_numbers), 1L)) {
-  #   n_cores <- 1L
-  # }
-
-  foreach_expression <- quote({
-
-    ## Find the indices of the trials of a specific scenario
-    scenario_data_matrix <- cbind(scenario_list[[k]]$n_responders,
-                                  scenario_list[[k]]$n_subjects)
-
-    trial_indices <- unlist(sapply(seq_len(nrow(scenario_data_matrix)), function (i) {
-      getRowIndexOfVectorInMatrix(
-        vector_to_be_found    = scenario_data_matrix[i, ],
-        matrix_to_be_searched = trials_unique)
-    }))
-
-    map_vector                   <- numeric(length(go_trial_indices))
-    map_vector[go_trial_indices] <- seq_along(which(go_trial_indices))
-    ## note: if applicable_previous_trials == FALSE, then map_indices == trial_indices
-    map_indices                  <- map_vector[trial_indices]
-
-    ## check whether there where previous analysis
-    if (applicable_previous_trials) {
-
-      scenario_method_quantiles <- scenario_list[[k]]$previous_analyses$post_quantiles
-
-    } else {
-
-      scenario_method_quantiles <- vector(mode = "list", length = length(method_names))
-      names(scenario_method_quantiles) <- method_names
-
-    }
-
-    ## Save scenario specific posterior quantiles for each method
-    for (n in seq_along(method_names)) {
-
-      if (applicable_previous_trials) {
-
-        ## This loop assigns only the updated/new trial realizations
-        ## lapply() implementation slower than for-loop, probably due to re-assignments
-        for (i in seq_along(map_indices)) {
-
-          ## replace only updated trials
-          if (!isTRUE(all.equal(0, map_indices[[i]]))) {
-
-            scenario_method_quantiles[[method_names[n]]][[i]] <-
-              method_quantiles_list[[method_names[n]]][[map_indices[[i]]]]
-
-          }
-
-        }
-
-      } else {
-
-        ## lapply() implementation that is not adapted to the inclusion of previously
-        ## analyzed trial realizations, but much faster than one that was
-        scenario_method_quantiles[[method_names[n]]] <- lapply(trial_indices, function (i) {
-          method_quantiles_list[[method_names[n]]][[i]]
-        })
-
-      }
-
-    }
-
-    ## combine results
-    scenario_analysis_list <- list(
-      quantiles_list      = scenario_method_quantiles,
-      scenario_data       = scenario_list[[k]],
+  ## combine results from all scenarios & return
+  analyses_list        <- vector(mode = "list", length = length(scenario_numbers))
+  names(analyses_list) <- paste0("scenario_", scenario_numbers)
+  
+  for (s in seq_along(scenario_numbers)) {
+    
+    analyses_list[[s]] <- list(
+      quantiles_list      = scenario_method_quantiles_list[[s]],
+      scenario_data       = scenario_list[[s]],
       analysis_parameters = list(
         quantiles             = quantiles,
         method_names          = method_names,
         prior_parameters_list = prior_parameters_list,
         n_mcmc_iterations     = n_mcmc_iterations))
-
-    return (scenario_analysis_list)
-
-  })
-
-  ## run foreach
-  analyses_list <- foreach::foreach(k = seq_along(scenario_numbers),
-                                    .verbose  = FALSE,
-                                    .export   = exported_stuff
-  ) %dopar% {eval(foreach_expression)}
-
-  ## message to user
-  if (verbose) {
-
-    message("             finished after ", round(Sys.time() - start_time, 1), " ",
-            units(Sys.time() - start_time), ".")
-    rm(start_time)
-
+    
   }
-
-  names(analyses_list) <- paste0("scenario_", scenario_numbers)
+  
   class(analyses_list) <- "analysis_list"
 
   return (analyses_list)
 
+}
+
+applicablePreviousTrials <- function(
+  
+  scenario_list,
+  method_names,
+  quantiles,
+  n_cohorts,
+  calc_differences
+  
+) {
+  
+  ## analyze only unique trials that have not been previously analyzed,
+  ## i.e. trials that were updated with continueRecruitment(),
+  ## i.e. trials that have an overall go decision from a previous decision rule
+  ## i.e. trials that have quantiles stored for each cohort that is to be analysed
+  applicable_previous_trials <-
+    ## check that in each scenario the same analysis methods were analyzed previously
+    all(sapply(seq_along(scenario_list), function (i) {
+      isTRUE(all.equal(names(scenario_list[[i]]$previous_analyses$post_quantiles),
+                       names(scenario_list[[1]]$previous_analyses$post_quantiles)))
+    })) &
+    ## check that the current analysis method names match the method names of the previous analyses
+    isTRUE(all.equal(names(scenario_list[[1]]$previous_analyses$post_quantiles), method_names)) &
+    ## check that the stored quantiles are the same across all scenarios
+    all(sapply(seq_along(scenario_list), function (i) {
+      isTRUE(all.equal(rownames(scenario_list[[i]]$previous_analyses$post_quantiles[[1]][[1]]),
+                       rownames(scenario_list[[1]]$previous_analyses$post_quantiles[[1]][[1]])))
+    })) &
+    ## check that the new quantiles are within the stored quantiles
+    all(paste0(as.character(quantiles * 100), "%") %in%
+          rownames(scenario_list[[1]]$previous_analyses$post_quantiles[[1]][[1]])) &
+    ## check that there are stored quantiles for each cohort that is to be analysed
+    all(paste0("p_", seq_len(n_cohorts)) %in%
+          colnames(scenario_list[[1]]$previous_analyses$post_quantiles[[1]][[1]]))
+  
+  ## check that all differences have been previously calculated
+  if (!is.null(calc_differences)) {
+    
+    applicable_previous_trials <- applicable_previous_trials &
+      all(apply(calc_differences, 1, function (x) {
+        paste0("p_diff_", paste0(as.character(x), collapse = ""))
+      }) %in% colnames(scenario_list[[1]]$previous_analyses$post_quantiles[[1]][[1]]))
+    
+  }
+  
+  return (applicable_previous_trials)
+  
+}
+
+mapUniqueTrials <- function (
+  
+  scenario_list,
+  method_quantiles_list,
+  trials_unique_calc,
+  applicable_previous_trials
+  
+) {
+  
+  method_names     <- names(method_quantiles_list)
+  scenario_numbers <- sapply(scenario_list, function (x) x$scenario_number)
+  
+  ## Create hash tables for results for easy retrieval
+  
+  hash_keys        <- getHashKeys(trials_unique_calc)
+  hash_tables_list <- vector(mode = "list", length = length(method_quantiles_list))
+  
+  for (n in seq_along(hash_tables_list)) {
+    
+    hash_tables_list[[n]] <- createHashTable(hash_keys, method_quantiles_list[[n]])
+    
+  }
+  
+  ## prepare foreach
+  exported_stuff <- c("convertVector2Matrix")
+  
+  ## run foreach
+  "%do%" <- foreach::"%do%"
+  scenario_method_quantiles_list <- foreach::foreach(k = seq_along(scenario_numbers),
+                                                     .verbose  = FALSE,
+                                                     .export   = exported_stuff
+  ) %do% {
+    
+    ## Find the indices of the trials of a specific scenario for go trials
+    scenario_data_matrix <- cbind(scenario_list[[k]]$n_responders,
+                                  scenario_list[[k]]$n_subjects)
+    
+    ## check whether there where previous analyses
+    if (applicable_previous_trials) {
+      
+      scenario_go_flags         <- scenario_list[[k]]$previous_analyses$go_decisions[, 1] > 0
+      scenario_method_quantiles <- scenario_list[[k]]$previous_analyses$post_quantiles
+      
+    } else {
+      
+      scenario_go_flags         <- rep(TRUE, length = nrow(scenario_data_matrix))
+      scenario_method_quantiles <- vector(mode = "list", length = length(method_names))
+      names(scenario_method_quantiles) <- method_names
+      
+    }
+    
+    ## In case there are trial realizations that need updating
+    ## This should only not be the case if all trial realizations of a scenario have a NoGo decision
+    ## and there are applicable previous trials.
+    if (any(scenario_go_flags)) {
+      
+      ## Get search keys
+      scenario_data_matrix_go <- convertVector2Matrix(scenario_data_matrix[scenario_go_flags, ])
+      search_keys             <- getHashKeys(scenario_data_matrix_go)
+      
+      ## Save scenario specific posterior quantiles for each method
+      for (n in seq_along(method_names)) {
+        
+        scenario_method_quantiles[[method_names[n]]][scenario_go_flags] <-
+          getHashValues(search_keys, hash_tables_list[[n]])
+        
+      }
+      
+    } 
+    
+    return (scenario_method_quantiles)
+    
+  }
+  
+  names(scenario_method_quantiles_list) <- paste0("scenario_", scenario_numbers)
+  
+  return (scenario_method_quantiles_list)
+  
 }
 
 is.analysis_list <- function (x) {
@@ -1062,7 +1050,6 @@ loadAnalyses <- function (
     "Please provide a string containing a path for the argument 'load_path'")
 
   if (missing(scenario_numbers)) stop (error_scenario_numbers)
-  # if (missing(analysis_numbers)) stop (error_analysis_numbers)
 
   if (!is.character(load_path) || length(load_path) > 1) stop (error_load_path)
 
@@ -1090,5 +1077,33 @@ loadAnalyses <- function (
 
 }
 
-
+getModelFile <- function (method_name) {
+  
+  if (method_name == "berry") {
+    
+    model_file <- "berry.txt"
+    
+  } else if (method_name == "berry_mix") {
+    
+    model_file <- "berry_mix.txt"
+    
+  } else if (method_name == "exnex") {
+    
+    model_file <- "exnex.txt"
+    
+  } else if (method_name == "exnex_adj") {
+    
+    model_file <- "exnex_adj.txt"
+    
+  } else {
+    
+    stop ("method_name must be one of berry, berry_mix, exnex, exnex_adj")
+    
+  }
+  
+  model_file <- system.file(package = "bhmbasket", "jags_models", model_file, mustWork = TRUE)
+  
+  return (model_file)
+  
+}
 

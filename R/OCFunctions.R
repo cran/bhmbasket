@@ -6,8 +6,6 @@ getGoDecisionsByCohort <- function (
   boundary_rates = NULL,
   decision_rule  = quote(x > boundary_rates)
 
-  # n_cohorts
-
 ) {
 
   go_decisions_list <- lapply(gamma_quantiles,
@@ -15,11 +13,6 @@ getGoDecisionsByCohort <- function (
 
   go_decisions <- matrix(unlist(go_decisions_list),
                          nrow = length(go_decisions_list), byrow = TRUE)
-
-  # if (dim(go_decisions)[2] == 1) {
-  #   go_decisions <- matrix(rep(go_decisions, n_cohorts),
-  #                          nrow = length(go_decisions_list), byrow = FALSE)
-  # }
 
   colnames(go_decisions) <- paste0("decision_", seq_len(ncol(go_decisions)))
 
@@ -93,33 +86,6 @@ getGammaIndices <- function (
       gamma_index <- getNumericGammaIndex(g, quantiles)
 
     }
-
-    # if (is.numeric(g)) {
-    #
-    #   gamma_index <- which(round(1 - quantiles, 5) == round(g, 5))
-    #
-    #   if (!(is.numeric(gamma_index) && length(gamma_index) > 0)) {
-    #
-    #     stop (simpleError(paste0(
-    #       'gamma must be one of ',
-    #       paste(round(1 - quantiles, 5), collapse = ", "))))
-    #
-    #   }
-    #
-    # } else if (g == "mean") {
-    #
-    #   gamma_index <- length(quantiles) + 1L
-    #
-    # } else if (g == "sd") {
-    #
-    #   gamma_index <- length(quantiles) + 2L
-    #
-    # } else {
-    #
-    #   stop ("gamma_levels must consist of posterior quantiles,
-    #         'mean' or 'sd'")
-    #
-    # }
 
     return (gamma_index)
 
@@ -210,8 +176,7 @@ getPosteriorGammaQuantiles <- function (
 #' analyses_list <- performAnalyses(
 #'   scenario_list       = scenarios_list,
 #'   target_rates        = rep(0.5, 2),
-#'   n_mcmc_iterations   = 100,
-#'   n_cores             = 1L)
+#'   n_mcmc_iterations   = 100)
 #'
 #' go_decisions_list <- getGoDecisions(
 #'   analyses_list       = analyses_list,
@@ -359,8 +324,7 @@ getGoProbabilities <- function (
 #' analysis_list <- performAnalyses(
 #'   scenario_list      = scenarios_list,
 #'   target_rates       = rep(0.5, 3),
-#'   n_mcmc_iterations  = 100,
-#'   n_cores            = 1L)
+#'   n_mcmc_iterations  = 100)
 #'
 #' go_decisions_list <- getGoDecisions(
 #'   analyses_list   = analysis_list,
@@ -417,16 +381,6 @@ negateGoDecisions <- function (
   for (s in seq_along(go_decisions_list)) {
 
     for (m in seq_along(go_decisions_list[[s]]$decisions_list)) {
-
-      # nogo_decisions_list[[s]]$decisions_list[[m]] <-
-      #   !nogo_decisions_list[[s]]$decisions_list[[m]]
-      #
-      # if (ncol(nogo_decisions_list[[s]]$decisions_list[[m]]) > 1) {
-      #
-      #   nogo_decisions_list[[s]]$decisions_list[[m]][, 1] <-
-      #     apply(nogo_decisions_list[[s]]$decisions_list[[m]][, -1], 1, all)
-      #
-      # }
 
       ## negate decisions
       nogo_decisions_list[[s]]$decisions_list[[m]] <-
@@ -643,8 +597,7 @@ getGoBoundaries <- function (
 #' analyses_list <- performAnalyses(
 #'   scenario_list      = scenarios_list,
 #'   target_rates       = rep(0.5, 3),
-#'   n_mcmc_iterations  = 100,
-#'   n_cores            = 1L)
+#'   n_mcmc_iterations  = 100)
 #'
 #' ## Decision rule for more than one cohort
 #' decisions_list <- getGoDecisions(
@@ -749,8 +702,6 @@ getGoDecisions <- function (
 
   gamma_levels <- evidence_levels
 
-  # gamma_levels <- str2expression(deparse(gamma_levels))
-
   ## Get method names
   method_names_matrix <- t(sapply(analyses_list,
                                   function (x) x$analysis_parameters$method_names))
@@ -803,7 +754,7 @@ getGoDecisions <- function (
       go_decisions <- getGoDecisionsByCohort(
         gamma_quantiles = getPosteriorGammaQuantiles(
           method_name              = method_names[n],
-          gamma_levels             = gamma_levels[[n]], # eval() ??
+          gamma_levels             = gamma_levels[[n]],
           quantiles                = analysis_data$analysis_parameters$quantiles,
           posterior_quantiles_list = analysis_data$quantiles_list,
           cohort_names             = cohort_names),
@@ -884,8 +835,7 @@ is.decision_list <- function (x) {
 #'     scenario_list       = scenarios_list,
 #'     target_rates        = c(0.1, 0.1, 0.1),
 #'     calc_differences    = matrix(c(3, 2, 2, 1), ncol = 2),
-#'     n_mcmc_iterations   = 100,
-#'     n_cores             = 1L)
+#'     n_mcmc_iterations   = 100)
 #'
 #'   getEstimates(analyses_list)
 #'   getEstimates(analyses_list   = analyses_list,
@@ -900,8 +850,7 @@ is.decision_list <- function (x) {
 #'   outcome_analysis <- performAnalyses(
 #'     scenario_list       = outcome,
 #'     target_rates        = c(0.1, 0.1, 0.1),
-#'     n_mcmc_iterations   = 100,
-#'     n_cores             = 1L)
+#'     n_mcmc_iterations   = 100)
 #'
 #'   getEstimates(outcome_analysis)
 #'   getEstimates(analyses_list  = outcome_analysis,
@@ -1052,11 +1001,7 @@ getEstimates <- function (
 
       ## Mean, SD & Quantiles
       post_quantiles <- t(do.call(rbind, lapply(matrix_estimates_list, colMeans)))
-      # if (is.null(dim(post_quantiles))) {
-      #   post_quantiles <- matrix(post_quantiles, byrow = TRUE,
-      #                            ncol = 5, nrow = length(true_rr))
-      #   rownames(post_quantiles) <- paste0("p_", seq_along(true_rr))
-      # }
+
       colnames(post_quantiles) <- c(
         "Mean", "SD",
         paste0(c(alpha_level / 2, 0.5, 1 - alpha_level / 2) * 100, "%"))
@@ -1077,13 +1022,6 @@ getEstimates <- function (
 
         point_estimates  <- as.matrix(colMeans(matrix_estimates))
         var_estimates    <- as.matrix(apply(matrix_estimates, 2, stats::var))
-
-        # if (isTRUE(all.equal(dim(point_estimates), c(1, 1)))) {
-        #
-        #   point_estimates <- matrix(rep(point_estimates, length(true_rr)), ncol = 1)
-        #   var_estimates   <- matrix(rep(var_estimates, length(true_rr)), ncol = 1)
-        #
-        # }
 
         bias_estimates <- point_estimates - t(true_rr)
         mse_estimates  <- bias_estimates^2 + var_estimates
@@ -1188,11 +1126,6 @@ getAllCohortNames <- function (
   analyses_list
 
 ) {
-
-  # post_names <- colnames(analyses_list[[1]]$quantiles_list[[1]][[1]])
-  # indices    <- grep("p_", post_names)
-  # 
-  # return (post_names[indices])
   
   Reduce(intersect,
          
