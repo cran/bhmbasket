@@ -12,7 +12,7 @@
 
 <meta name="author" content="Stephan Wojciekowski" />
 
-<meta name="date" content="2022-01-18" />
+<meta name="date" content="2022-02-14" />
 
 <title>Running bhmbasket on HPC</title>
 
@@ -140,7 +140,7 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 
 <h1 class="title toc-ignore">Running bhmbasket on HPC</h1>
 <h4 class="author">Stephan Wojciekowski</h4>
-<h4 class="date">January 18, 2022</h4>
+<h4 class="date">February 14, 2022</h4>
 
 
 
@@ -154,28 +154,31 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 <div id="setup-of-the-parallel-backend" class="section level2">
 <h2>Setup of the parallel backend</h2>
 <p>The code below provides an example for specifying a parallel backend using the future framework with the SLURM job scheduler. Kindly see the documentation of the R packages <code>doFuture</code> and <code>future.batchtools</code> for further options. This code is to be run on the master node.</p>
-<div class="sourceCode" id="cb2"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="fu">registerDoFuture</span>()</span>
-<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>job_time  <span class="ot">&lt;-</span> <span class="dv">24</span>  <span class="co"># time for job in hours</span></span>
-<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a>n_workers <span class="ot">&lt;-</span> <span class="dv">10</span>  <span class="co"># number of worker nodes</span></span>
-<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a>n_cpus    <span class="ot">&lt;-</span> <span class="dv">16</span>  <span class="co"># number of cpus per worker node</span></span>
-<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a>gb_memory <span class="ot">&lt;-</span> <span class="dv">1</span>   <span class="co"># memory [GB] per worker node</span></span>
-<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-8"><a href="#cb2-8" aria-hidden="true" tabindex="-1"></a>slurm <span class="ot">&lt;-</span> <span class="fu">tweak</span>(batchtools_slurm,</span>
-<span id="cb2-9"><a href="#cb2-9" aria-hidden="true" tabindex="-1"></a>           <span class="at">template  =</span> <span class="fu">system.file</span>(<span class="st">&#39;templates/slurm-simple.tmpl&#39;</span>,</span>
-<span id="cb2-10"><a href="#cb2-10" aria-hidden="true" tabindex="-1"></a>                                   <span class="at">package =</span> <span class="st">&#39;batchtools&#39;</span>),</span>
-<span id="cb2-11"><a href="#cb2-11" aria-hidden="true" tabindex="-1"></a>           <span class="at">workers   =</span> n_workers,</span>
-<span id="cb2-12"><a href="#cb2-12" aria-hidden="true" tabindex="-1"></a>           <span class="at">resources =</span> <span class="fu">list</span>(</span>
-<span id="cb2-13"><a href="#cb2-13" aria-hidden="true" tabindex="-1"></a>             <span class="at">walltime  =</span> <span class="dv">60</span> <span class="sc">*</span> <span class="dv">60</span> <span class="sc">*</span> job_time,</span>
-<span id="cb2-14"><a href="#cb2-14" aria-hidden="true" tabindex="-1"></a>             <span class="at">ncpus     =</span> n_cpus,</span>
-<span id="cb2-15"><a href="#cb2-15" aria-hidden="true" tabindex="-1"></a>             <span class="at">memory    =</span> <span class="dv">1000</span> <span class="sc">*</span> gb_memory))</span>
-<span id="cb2-16"><a href="#cb2-16" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-17"><a href="#cb2-17" aria-hidden="true" tabindex="-1"></a><span class="fu">plan</span>(slurm)</span></code></pre></div>
+<div class="sourceCode" id="cb2"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="do">## Adapt the SLURM template to requirements</span></span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>job_time  <span class="ot">&lt;-</span> <span class="dv">1</span>   <span class="co"># time for job in hours</span></span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>n_workers <span class="ot">&lt;-</span> <span class="dv">24</span>  <span class="co"># number of worker nodes</span></span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a>n_cpus    <span class="ot">&lt;-</span> <span class="dv">16</span>  <span class="co"># number of cpus per worker node</span></span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a>gb_memory <span class="ot">&lt;-</span> <span class="dv">2</span>   <span class="co"># memory [GB] per cpu</span></span>
+<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a>slurm <span class="ot">&lt;-</span> <span class="fu">tweak</span>(batchtools_slurm,</span>
+<span id="cb2-8"><a href="#cb2-8" aria-hidden="true" tabindex="-1"></a>           <span class="at">template  =</span> <span class="fu">system.file</span>(<span class="st">&#39;templates/slurm-simple.tmpl&#39;</span>,</span>
+<span id="cb2-9"><a href="#cb2-9" aria-hidden="true" tabindex="-1"></a>                                   <span class="at">package =</span> <span class="st">&#39;batchtools&#39;</span>),</span>
+<span id="cb2-10"><a href="#cb2-10" aria-hidden="true" tabindex="-1"></a>           <span class="at">workers   =</span> n_workers,</span>
+<span id="cb2-11"><a href="#cb2-11" aria-hidden="true" tabindex="-1"></a>           <span class="at">resources =</span> <span class="fu">list</span>(</span>
+<span id="cb2-12"><a href="#cb2-12" aria-hidden="true" tabindex="-1"></a>             <span class="at">walltime  =</span> <span class="dv">60</span> <span class="sc">*</span> <span class="dv">60</span> <span class="sc">*</span> job_time,</span>
+<span id="cb2-13"><a href="#cb2-13" aria-hidden="true" tabindex="-1"></a>             <span class="at">ncpus     =</span> n_cpus,</span>
+<span id="cb2-14"><a href="#cb2-14" aria-hidden="true" tabindex="-1"></a>             <span class="at">memory    =</span> <span class="dv">1000</span> <span class="sc">*</span> gb_memory))</span>
+<span id="cb2-15"><a href="#cb2-15" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-16"><a href="#cb2-16" aria-hidden="true" tabindex="-1"></a><span class="do">## Register the parallel backend </span></span>
+<span id="cb2-17"><a href="#cb2-17" aria-hidden="true" tabindex="-1"></a><span class="fu">registerDoFuture</span>()</span>
+<span id="cb2-18"><a href="#cb2-18" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-19"><a href="#cb2-19" aria-hidden="true" tabindex="-1"></a><span class="do">## Specify how the futures should be resolved</span></span>
+<span id="cb2-20"><a href="#cb2-20" aria-hidden="true" tabindex="-1"></a><span class="fu">plan</span>(<span class="fu">list</span>(slurm, multisession))</span></code></pre></div>
 </div>
 <div id="running-some-bhmbasket-code-on-hpc" class="section level2">
 <h2>Running some bhmbasket code on HPC</h2>
-<p>The R package <code>bhmbasket</code> makes use of the foreach framework and runs with every applicable parallel backend. Therefore, no further adjustments to the code are necessary, which can be run on the master node. With a parallel backend registered as shown above, the job scheduler will automatically distribute the parallel jobs to the worker nodes.</p>
-<p>Below is some example code, which was taken from the examples section of <code>?bhmbasket::getEstimates</code>. Kindly note that running this small example on a HPC environment will most likely not result in a performance improvement.</p>
+<p>The R package <code>bhmbasket</code> makes use of the foreach framework and runs with every applicable parallel backend. With a parallel backend registered as shown above and running the code on the master node, the job scheduler will automatically distribute the jobs to the worker nodes via <code>plan(slurm)</code>, and with the nested parallelization built into <code>performAnalyses()</code>, each worker node makes use of its CPUs via <code>plan(multisession)</code>.</p>
+<p>Below is some example code, which was taken from the examples section of <code>?bhmbasket::getEstimates</code>. Due to the foreach framework, no adjustments to the code are necessary. Kindly note that running this small example on a HPC environment will most likely not result in a performance improvement.</p>
 <div class="sourceCode" id="cb3"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a>scenarios_list <span class="ot">&lt;-</span> <span class="fu">simulateScenarios</span>(</span>
 <span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>    <span class="at">n_subjects_list     =</span> <span class="fu">list</span>(<span class="fu">c</span>(<span class="dv">10</span>, <span class="dv">20</span>, <span class="dv">30</span>)),</span>
 <span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>    <span class="at">response_rates_list =</span> <span class="fu">list</span>(<span class="fu">c</span>(<span class="fl">0.1</span>, <span class="fl">0.2</span>, <span class="dv">3</span>)),</span>

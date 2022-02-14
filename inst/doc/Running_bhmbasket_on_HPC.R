@@ -15,12 +15,11 @@ knitr::opts_chunk$set(
 #  set.seed(rng_seed)
 
 ## ----SLURM_Setup--------------------------------------------------------------
-#  registerDoFuture()
-#  
-#  job_time  <- 24  # time for job in hours
-#  n_workers <- 10  # number of worker nodes
+#  ## Adapt the SLURM template to requirements
+#  job_time  <- 1   # time for job in hours
+#  n_workers <- 24  # number of worker nodes
 #  n_cpus    <- 16  # number of cpus per worker node
-#  gb_memory <- 1   # memory [GB] per worker node
+#  gb_memory <- 2   # memory [GB] per cpu
 #  
 #  slurm <- tweak(batchtools_slurm,
 #             template  = system.file('templates/slurm-simple.tmpl',
@@ -31,7 +30,11 @@ knitr::opts_chunk$set(
 #               ncpus     = n_cpus,
 #               memory    = 1000 * gb_memory))
 #  
-#  plan(slurm)
+#  ## Register the parallel backend
+#  registerDoFuture()
+#  
+#  ## Specify how the futures should be resolved
+#  plan(list(slurm, multisession))
 
 ## -----------------------------------------------------------------------------
 #  scenarios_list <- simulateScenarios(

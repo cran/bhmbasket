@@ -1,3 +1,27 @@
+# bhmbasket 0.9.5
+
+### Fixed Bugs
+
+* Fixed a bug that occured in performAnalyses() using R-devel due to a recent change in stats::aggregate()
+
+### New & Altered Features
+
+* Introduced nested parallelization for better usage of HPC resources
+
+* Introduced chunking of tasks for better performance in parallel environments
+
+* Updated vignette on HPC environment
+
+* Update documentation of performAnalyses()
+
+* Recommended doFuture and future over doParallel and parallel when no parallel backend is detected
+
+* Updated Suggests and SystemRequirements in DESCRIPTION
+
+* Added a WORDLIST
+
+* Minor changes in code
+
 # bhmbasket 0.9.4
 
 ### Fixed Bugs

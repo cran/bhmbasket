@@ -17,9 +17,6 @@
           ## Likelihood
           logit(p[j]) <- theta[j] + logit(p_t[j])
           r[j] ~ dbin(p[j], n[j])
-          
-          # ## Predict future responders
-          # r2[j] ~ dbin(p[j], m[j])
         
         }
         

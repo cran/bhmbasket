@@ -1,5 +1,188 @@
-## R CMD check appeasement
+## R CMD check appeasement for forach loop
 utils::globalVariables("k")
+utils::globalVariables("i")
+
+## Code inspired by https://stackoverflow.com/questions/3318333/split-a-vector-into-chunks
+## Answer by mathheadinclouds
+chunkVector <- function(x, n_chunks) {
+  
+  if (n_chunks <= 1) {
+    
+    chunk_list <- list(x)
+    
+  } else {
+    
+    chunk_list <- unname(split(x, cut(seq_along(x), n_chunks, labels = FALSE)))
+    
+  }
+  
+  return (chunk_list)
+  
+}
+
+convertVector2Matrix <- function (vector) {
+  
+  if (is.null(dim(vector))) {
+    vector <- t(as.matrix(vector))
+  }
+  
+  return (vector)
+  
+}
+
+## Code inspired by https://www.r-bloggers.com/2019/01/hash-me-if-you-can/ 
+createHashTable <- function (keys, values, size = length(keys)) {
+  
+  # initialize environment to store key - value assignments, i.e. hash table
+  hash <- new.env(hash = TRUE, parent = emptyenv(), size = length(keys))
+  
+  # assign values to keys
+  assignHashes <- Vectorize(assign, vectorize.args = c("x", "value"))
+  assignHashes(x = keys, value = values, envir = hash)
+  
+  return (hash)
+  
+}
+
+cummulativeMovingAverage <- function (x) {
+  return (cumsum(x) / seq_along(x))
+}
+
+firstUpper <- function (string) {
+  
+  substr(string, 1, 1) <- toupper(substr(string, 1, 1))
+  return (string)
+  
+}
+
+getHashKeys <- function (x) {
+  
+  x <- convertVector2Matrix(x)
+  
+  # apply(x, 1, rlang::hash)
+  
+  if (is.null(colnames(x))) {
+    
+    colnames_x <- as.character(paste0("x", seq_len(ncol(x))))
+    
+  } else {
+    
+    colnames_x <- colnames(x)
+    
+  }
+  
+  apply(x, 1, function (y) paste0(colnames_x, ":", as.character(y), collapse = "|"))
+  
+}
+
+## Code inspired by https://www.r-bloggers.com/2019/01/hash-me-if-you-can/ 
+getHashValues <- function(search_keys, hash_table) {
+  
+  unname(mget(search_keys, hash_table))
+  
+}
+
+
+getListLevel <- function (
+  
+  list
+  
+) {
+  
+  if (!is.list(list)) {
+    
+    return (0)
+    
+  } else {
+    
+    list <- list[[1]]
+    
+    return (1 + getListLevel(list))
+    
+  }
+  
+}
+
+getRowIndexOfVectorInMatrix <- function (
+  
+  vector_to_be_found,
+  matrix_to_be_searched
+  
+) {
+  
+  n_col <- ncol(matrix_to_be_searched)
+  
+  if (length(vector_to_be_found) != n_col) {
+    stop ("The length of the vector must be equal to the number of columns of the matrix")
+  }
+  
+  index <- apply(convertVector2Matrix(sapply(seq_len(n_col), function (i) {
+    
+    matrix_to_be_searched[, i] %in% vector_to_be_found[i]
+    
+  })), 1, all)
+  
+  return (which(index))
+  
+}
+
+#' @title invLogit
+#' @description This function returns the inverse logit of the input argument.
+#' @param theta A numeric
+#' @details This function is an alias for `stats::binomial()$linkinv`
+#' @return Inverse logit of theta
+#' @rdname invlogit
+#' @author Stephan Wojciekowski
+#' @examples
+#' invLogit(logit(0.3))
+#' invLogit(c(-Inf, 0, Inf))
+#' @seealso
+#'  \code{\link[stats]{family}}
+#' @export
+invLogit <- function (theta) {
+  
+  error_theta <- simpleError("Please provide a numeric for the argument 'theta'")
+  
+  if (missing(theta))     stop (error_theta)
+  if (!is.numeric(theta)) stop (error_theta)
+  
+  stats::binomial()$linkinv(theta)
+  
+}
+
+listPerMethod <- function (
+  
+  list_per_scenario
+  
+) {
+  
+  all_method_names <- unique(as.vector(sapply(list_per_scenario, names)))
+  
+  ## Create list to hold output
+  out_list <- vector(mode = "list", length = length(all_method_names))
+  names(out_list) <- all_method_names
+  
+  for (n in seq_along(out_list)) {
+    
+    out_list[[n]] <- vector(mode = "list", length = length(list_per_scenario))
+    names(out_list[[n]]) <- paste0("scenario_", getScenarioNumbers(list_per_scenario))
+    
+  }
+  
+  ## Copy contents to new output list
+  for (name in all_method_names) {
+    
+    for (s in seq_along(list_per_scenario)) {
+      
+      out_list[[name]][[s]] <- list_per_scenario[[s]][[name]]
+      
+    }
+    
+  }
+  
+  return (out_list)
+  
+}
 
 #' @title logit
 #' @description This function returns the logit of the input argument.
@@ -25,76 +208,72 @@ logit <- function (p) {
 
 }
 
-#' @title invLogit
-#' @description This function returns the inverse logit of the input argument.
-#' @param theta A numeric
-#' @details This function is an alias for `stats::binomial()$linkinv`
-#' @return Inverse logit of theta
-#' @rdname invlogit
-#' @author Stephan Wojciekowski
-#' @examples
-#' invLogit(logit(0.3))
-#' invLogit(c(-Inf, 0, Inf))
-#' @seealso
-#'  \code{\link[stats]{family}}
-#' @export
-invLogit <- function (theta) {
-
-  error_theta <- simpleError("Please provide a numeric for the argument 'theta'")
-
-  if (missing(theta))     stop (error_theta)
-  if (!is.numeric(theta)) stop (error_theta)
-
-  stats::binomial()$linkinv(theta)
-
-}
-
-firstUpper <- function (string) {
-
-  substr(string, 1, 1) <- toupper(substr(string, 1, 1))
-  return (string)
-
-}
-
-cummulativeMovingAverage <- function (x) {
-  return (cumsum(x) / seq_along(x))
-}
-
-getRowIndexOfVectorInMatrix <- function (
-
-  vector_to_be_found,
-  matrix_to_be_searched
-
-) {
-
-  n_col <- ncol(matrix_to_be_searched)
-
-  if (length(vector_to_be_found) != n_col) {
-    stop ("The length of the vector must be equal to the number of columns of the matrix")
+roundList <- function (list, round_digits, list_levels) {
+  
+  if (is.null(round_digits)) return (list)
+  
+  round_expression <- quote({
+    if (is.numeric(a)) {
+      round(a, round_digits)
+    } else {
+      stop (simpleError("The list must contain numerics"))
+    }
+  })
+  
+  if (list_levels == 1) {
+    
+    return (lapply(list, function (a) eval(round_expression)))
+    
+  } else if (list_levels == 2) {
+    
+    return (lapply(list, function (x)
+      lapply(x, function (a) eval(round_expression))))
+    
+  } else if (list_levels == 3) {
+    
+    return (lapply(list, function (x)
+      lapply(x, function (y)
+        lapply(y, function (a) eval(round_expression)))))
+    
+  } else {
+    
+    stop ("lists with a nested depth greater than 3 are not supported")
+    
   }
-
-  index <- apply(convertVector2Matrix(sapply(seq_len(n_col), function (i) {
-
-    matrix_to_be_searched[, i] %in% vector_to_be_found[i]
-
-  })), 1, all)
-
-  return (which(index))
-
+  
 }
 
-substrRight <- function (x, n) {
-  substr(x, nchar(x) - n + 1, nchar(x))
-}
-
-convertVector2Matrix <- function (vector) {
-
-  if (is.null(dim(vector))) {
-    vector <- t(as.matrix(vector))
+scaleList <- function (list, scale_param, list_levels) {
+  
+  scale_expression <- quote({
+    if (is.numeric(a)) {
+      a * scale_param
+    } else {
+      stop (simpleError("The list must contain numerics"))
+    }
+  })
+  
+  if (list_levels == 1) {
+    
+    return (lapply(list, function (a) eval(scale_expression)))
+    
+  } else if (list_levels == 2) {
+    
+    return (lapply(list, function (x)
+      lapply(x, function (a) eval(scale_expression))))
+    
+  } else if (list_levels == 3) {
+    
+    return (lapply(list, function (x)
+      lapply(x, function (y)
+        lapply(y, function (a) eval(scale_expression)))))
+    
+  } else {
+    
+    stop ("lists with a nested depth greater than 3 are not supported")
+    
   }
-
-  return (vector)
-
+  
 }
 
 #' @title scaleRoundList
@@ -126,197 +305,38 @@ convertVector2Matrix <- function (vector) {
 #'   round_digits = 2)
 #' @export
 scaleRoundList <- function(
-
+  
   list,
   scale_param  = 1,
   round_digits = NULL
-
+  
 ) {
-
+  
   error_list  <- simpleError(
     "Please provide a list (of lists) of numerics for the argument 'list'")
   error_scale_param <- simpleError(
     "Please provide a positive numeric for the argument 'scale_param'")
   error_round_digits <- simpleError(
     "Please provide a positive integer for the argument 'round_digits'")
-
+  
   if (missing(list))                                     stop (error_list)
-
+  
   if (!is.list(list))                                    stop (error_list)
   if (!is.single.positive.numeric(scale_param))          stop (scale_param)
   if (!is.null(round_digits) &&
       !is.single.non.negative.wholenumber(round_digits)) stop (error_round_digits)
-
+  
   ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ###
-
+  
   list_levels <- getListLevel(list)
-
+  
   out_list    <- roundList(scaleList(list, scale_param, list_levels),
-                            round_digits, list_levels)
-
+                           round_digits, list_levels)
+  
   return (out_list)
-
-}
-
-scaleList <- function (list, scale_param, list_levels) {
-
-  scale_expression <- quote({
-    if (is.numeric(a)) {
-      a * scale_param
-    } else {
-      stop (simpleError("The list must contain numerics"))
-    }
-  })
-
-  if (list_levels == 1) {
-
-    return (lapply(list, function (a) eval(scale_expression)))
-
-  } else if (list_levels == 2) {
-
-    return (lapply(list, function (x)
-      lapply(x, function (a) eval(scale_expression))))
-
-  } else if (list_levels == 3) {
-
-    return (lapply(list, function (x)
-      lapply(x, function (y)
-        lapply(y, function (a) eval(scale_expression)))))
-
-  } else {
-
-    stop ("lists with a nested depth greater than 3 are not supported")
-
-  }
-
-}
-
-roundList <- function (list, round_digits, list_levels) {
-
-  if (is.null(round_digits)) return (list)
-
-  round_expression <- quote({
-    if (is.numeric(a)) {
-      round(a, round_digits)
-    } else {
-      stop (simpleError("The list must contain numerics"))
-    }
-  })
-
-  if (list_levels == 1) {
-
-    return (lapply(list, function (a) eval(round_expression)))
-
-  } else if (list_levels == 2) {
-
-    return (lapply(list, function (x)
-      lapply(x, function (a) eval(round_expression))))
-
-  } else if (list_levels == 3) {
-
-    return (lapply(list, function (x)
-      lapply(x, function (y)
-        lapply(y, function (a) eval(round_expression)))))
-
-  } else {
-
-    stop ("lists with a nested depth greater than 3 are not supported")
-
-  }
-
-}
-
-getListLevel <- function (
-
-  list
-
-) {
-
-  if (!is.list(list)) {
-
-    return (0)
-
-  } else {
-
-    list <- list[[1]]
-
-    return (1 + getListLevel(list))
-
-  }
-
-}
-
-
-listPerMethod <- function (
-
-  list_per_scenario
-
-) {
-
-  all_method_names <- unique(as.vector(sapply(list_per_scenario, names)))
-
-  ## Create list to hold output
-  out_list <- vector(mode = "list", length = length(all_method_names))
-  names(out_list) <- all_method_names
-
-  for (n in seq_along(out_list)) {
-
-    out_list[[n]] <- vector(mode = "list", length = length(list_per_scenario))
-    names(out_list[[n]]) <- paste0("scenario_", getScenarioNumbers(list_per_scenario))
-
-  }
-
-  ## Copy contents to new output list
-  for (name in all_method_names) {
-
-    for (s in seq_along(list_per_scenario)) {
-
-      out_list[[name]][[s]] <- list_per_scenario[[s]][[name]]
-
-    }
-
-  }
-
-  return (out_list)
-
-}
-
-# apply(x, 1, rlang::hash)
-getHashKeys <- function (x) {
-  
-  x <- convertVector2Matrix(x)
-  
-  if (is.null(colnames(x))) {
-    
-    colnames_x <- as.character(paste0("x", seq_len(ncol(x))))
-      
-  } else {
-    
-    colnames_x <- colnames(x)
-    
-  }
-  
-  apply(x, 1, function (y) paste0(colnames_x, ":", as.character(y), collapse = "|"))
   
 }
 
-## Code inspired by https://www.r-bloggers.com/2019/01/hash-me-if-you-can/ 
-createHashTable <- function (keys, values, size = length(keys)) {
-  
-  # initialize environment to store key - value assignments, i.e. hash table
-  hash <- new.env(hash = TRUE, parent = emptyenv(), size = length(keys))
-  
-  # assign values to keys
-  assignHashes <- Vectorize(assign, vectorize.args = c("x", "value"))
-  assignHashes(x = keys, value = values, envir = hash)
-  
-  return (hash)
-  
-}
-
-## Code inspired by https://www.r-bloggers.com/2019/01/hash-me-if-you-can/ 
-getHashValues <- function(search_keys, hash_table) {
-  
-  unname(mget(search_keys, hash_table))
-  
+substrRight <- function (x, n) {
+  substr(x, nchar(x) - n + 1, nchar(x))
 }
