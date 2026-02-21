@@ -4,7 +4,7 @@
 \alias{continueRecruitment}
 \title{continueRecruitment}
 \usage{
-continueRecruitment(n_subjects_add_list, decisions_list, method_name)
+continueRecruitment(n_subjects_add_list, decisions_list, method_name = NULL)
 }
 \arguments{
 \item{n_subjects_add_list}{A list that contains for each scenario an integer vector for
@@ -13,7 +13,8 @@ the number of subjects per cohort to be additionally recruited.}
 \item{decisions_list}{A list with decisions per scenario created with
 \code{\link[bhmbasket]{getGoDecisions}}}
 
-\item{method_name}{A string for the method name of the analysis the decisions are based on}
+\item{method_name}{A string for the method name of the analysis the decisions are based on.
+Can be \code{NULL} if only one method has been used for analysis, Default: \code{NULL}}
 }
 \value{
 An object of class \code{scenario_list} with the scenario data for each specified scenario.

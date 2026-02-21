@@ -1,6 +1,3 @@
-
-
-
 #' @title getPriorParameters
 #' @md
 #' @description This function provides default prior parameters for the analysis methods
@@ -88,37 +85,38 @@ getPriorParameters <- function (
   w_j       = 0.5
 
 ) {
-
-  error_method_names <- simpleError(
-    paste("Please provide a (vector of) strings for the argument 'method_names'\n",
-          "Must be one of 'berry', 'exnex', 'exnex_adj', 'pooled', 'stratified'"))
-  error_target_rates <- simpleError(
-    "Please provide a vector of numerics in (0, 1) for the argument 'target_rates'")
-  error_tau_scale    <- simpleError(
-    "Please provide a positive numeric for the argument 'tau_scale'")
-  error_n_worth      <- simpleError("Please provide a positive integer for the argument 'n_worth'")
-  error_w_j          <- simpleError("Please provide a numeric in (0, 1) for the argument 'w_j'")
-
-  if (missing(method_names)) stop (error_method_names)
-  if (missing(target_rates)) stop (error_target_rates)
-
+  
+  error_method_names <- 
+    paste("Providing a (vector of) strings for the argument 'method_names'\n",
+          "Must be one of 'berry', 'exnex', 'exnex_adj', 'pooled', 'stratified'")
+  error_target_rates <- 
+    "Providing a vector of numerics in (0, 1) for the argument 'target_rates'"
+  error_tau_scale    <- 
+    "Providing a positive numeric for the argument 'tau_scale'"
+  error_n_worth      <- "Providing a positive integer for the argument 'n_worth'"
+  error_w_j          <- "Providing a numeric in (0, 1) for the argument 'w_j'"
+  
+  checkmate::assertCharacter(method_names, any.missing = FALSE, .var.name = error_method_names)
+  
   method_names <- tryCatch({
-
+    
     match.arg(
       method_names,
       choices    = c('berry', 'exnex', 'exnex_adj', 'pooled', 'stratified'),
       several.ok = TRUE)
-
+    
   }, error = function (e) e)
-
-  if (inherits(method_names, "error"))          stop (error_method_names)
-  if (!is.numeric.in.zero.one(target_rates))    stop (error_target_rates)
-  if (!is.single.positive.numeric(tau_scale))   stop (error_tau_scale)
-  if (!is.single.positive.wholenumber(n_worth)) stop (error_n_worth)
-  # if (!is.single.numeric.in.zero.one(w_j))      stop (error_w_j)
-  if (!is.single.numeric(w_j) ||
-      any(w_j < 0) ||
-      any(w_j > 1))                             stop (error_w_j)
+  
+  checkmate::assertNumeric(target_rates, any.missing = FALSE, .var.name = error_target_rates)
+  checkmate::assertTRUE(all(target_rates > 0 & target_rates < 1), .var.name = error_target_rates)
+  
+  checkmate::assertNumber(tau_scale, .var.name = error_tau_scale)
+  checkmate::assertTRUE(tau_scale > 0, .var.name = error_tau_scale)
+  
+  checkmate::assertInt(n_worth, lower = 1, .var.name = error_n_worth)
+  
+  checkmate::assertNumeric(w_j, lower = 0, upper = 1, len = 1, .var.name = error_w_j)
+  
 
   ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ###
 
@@ -211,21 +209,25 @@ combinePriorParameters <- function (
   list_of_prior_parameters
 
 ) {
-
-  error_list <- simpleError("Please provide a list of of items with class 'prior_parameters_list'")
-
-  if (missing(list_of_prior_parameters)) stop (error_list)
-
-  if (!is.list(list_of_prior_parameters))                               stop (error_list)
-  if (any(!sapply(list_of_prior_parameters, is.prior_parameters_list))) stop (error_list)
-
+  
+  error_list <- "Providing a list of of items with class 'prior_parameters_list'"
+  
+  checkmate::assertList(
+    list_of_prior_parameters, types = "list", any.missing = FALSE, .var.name = "list_of_prior_parameters"
+    )
+  
+  checkmate::assertTRUE(
+    all(vapply(list_of_prior_parameters, function(x) inherits(x, "prior_parameters_list"), logical(1))),
+    .var.name = "list_of_prior_parameters"
+  )
+  
   ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ###
 
   method_names <- sapply(list_of_prior_parameters, names)
 
-  if (!identical(length(unique(method_names)), length(method_names))) stop (simpleError(
-    "Please provide only one 'prior_parameters_list' per analysis method"
-  ))
+  checkmate::assertTRUE(
+    length(unique(method_names)) == length(method_names),
+  )
 
   prior_parameters_list <- vector(mode = "list", length(method_names))
   names(prior_parameters_list) <- method_names
@@ -284,23 +286,21 @@ getMuVar <- function (
   n_worth = 1
 
 ) {
+  
+  error_response_rate <- 
+    "Providing a numeric in (0, 1) for the argument 'response_rate'"
+  error_tau_scale <- 
+    "Providing a positive numeric for the argument 'tau_scale'"
+  error_n_worth <- 
+    "Providing a positive integer for the argument 'n_worth'"
+  
+  checkmate::assertNumeric(response_rate, .var.name = error_response_rate)
+  checkmate::assertTRUE(all(response_rate > 0 & response_rate < 1), .var.name = error_response_rate)
+  
+  checkmate::assertNumber(tau_scale, lower = 0, .var.name = error_tau_scale)
 
-  error_response_rate <- simpleError(
-    "Please provide a numeric in (0, 1) for the argument 'response_rate'")
-  error_tau_scale <- simpleError(
-    "Please provide a positive numeric for the argument 'tau_scale'")
-  error_n_worth <- simpleError(
-    "Please provide a positive integer for the argument 'n_worth'")
-
-  if (missing(response_rate)) stop (error_response_rate)
-  if (missing(tau_scale))     stop (error_tau_scale)
-
-  if (!is.numeric.in.zero.one(response_rate))   stop (error_response_rate)
-  if (!is.numeric(tau_scale) ||
-      length(tau_scale) > 1 ||
-      tau_scale < 0)                            stop (error_tau_scale)
-  if (!is.single.positive.wholenumber(n_worth)) stop (error_n_worth)
-
+  checkmate::assertInt(n_worth, lower = 1, .var.name = error_n_worth)
+  
   ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ###
 
   mu_var <- (n_worth * response_rate * (1 - response_rate))^-1 - tau_scale^2
@@ -318,19 +318,21 @@ getPriorParametersBerry <- function (
   n_worth   = 1
 
 ) {
-
-  error_target_rates <- simpleError(
-    "Please provide a vector of numerics in (0, 1) for the argument 'target_rates'")
-  error_tau_scale    <- simpleError(
-    "Please provide a positive numeric for the argument 'tau_scale'")
-  error_n_worth      <- simpleError(
-    "Please provide a positive integer for the argument 'n_worth'")
-
-  if (missing(target_rates))                    stop (error_target_rates)
-
-  if (!is.numeric.in.zero.one(target_rates))    stop (error_target_rates)
-  if (!is.single.positive.numeric(tau_scale))   stop (error_tau_scale)
-  if (!is.single.positive.wholenumber(n_worth)) stop (error_n_worth)
+  
+  error_target_rates <- 
+    "Providing a vector of numerics in (0, 1) for the argument 'target_rates'"
+  error_tau_scale    <- 
+    "Providing a positive numeric for the argument 'tau_scale'"
+  error_n_worth      <- 
+    "Providing a positive integer for the argument 'n_worth'"
+  
+  checkmate::assertNumeric(target_rates, any.missing = FALSE, .var.name = error_target_rates)
+  checkmate::assertTRUE(all(target_rates > 0 & target_rates < 1), .var.name = error_target_rates)
+  
+  checkmate::assertNumber(tau_scale, .var.name = error_tau_scale)
+  checkmate::assertTRUE(tau_scale > 0, .var.name = error_tau_scale)
+  
+  checkmate::assertInt(n_worth, lower = 1, .var.name = error_n_worth)
 
   ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ###
 
@@ -389,22 +391,23 @@ setPriorParametersBerry <- function (
   tau_scale
 
 ) {
+  
+  error_mu_mean  <- 
+    "Providing a numeric for the argument 'mu_mean'"
+  error_mu_sd  <- 
+    "Providing a positive numeric for the argument 'mu_sd'"
+  error_tau_scale <- 
+    "Providing a positive numeric for the argument 'tau_scale'"
+  
+  
+  checkmate::assertNumber(mu_mean, .var.name = error_mu_mean)
 
-  error_mu_mean  <- simpleError(
-    "Please provide a numeric for the argument 'mu_mean'")
-  error_mu_sd  <- simpleError(
-    "Please provide a positive numeric for the argument 'mu_sd'")
-  error_tau_scale <- simpleError(
-    "Please provide a positive numeric for the argument 'tau_scale'")
+  checkmate::assertNumber(mu_sd, .var.name = error_mu_sd)
+  checkmate::assertTRUE(mu_sd > 0, .var.name = error_mu_sd)
 
-  if (missing(mu_mean))   stop (error_mu_mean)
-  if (missing(mu_sd))     stop (error_mu_sd)
-  if (missing(tau_scale)) stop (error_tau_scale)
-
-  if (!is.single.numeric(mu_mean))            stop (error_mu_mean)
-  if (!is.single.positive.numeric(mu_sd))     stop (error_mu_sd)
-  if (!is.single.positive.numeric(tau_scale)) stop (error_tau_scale)
-
+  checkmate::assertNumber(tau_scale, .var.name = error_tau_scale)
+  checkmate::assertTRUE(tau_scale > 0, .var.name = error_tau_scale)
+  
   ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ###
 
   prior_parameters <- list(
@@ -422,58 +425,71 @@ setPriorParametersBerry <- function (
 ## exnex ####
 
 getPriorParametersExNex <- function (
-
+    
   target_rates,
   tau_scale = 1,
   n_worth   = 1,
-
+  
   w_j       = 0.5
-
+  
 ) {
-
-  error_target_rates <- simpleError(
-    "Please provide a vector of numerics in (0, 1) for the argument 'target_rates'")
-  error_tau_scale    <- simpleError(
-    "Please provide a positive numeric for the argument 'tau_scale'")
-  error_n_worth      <- simpleError(
-    "Please provide a positive integer for the argument 'n_worth'")
-  error_w_j          <- simpleError(
-    "Please provide a numeric in (0, 1) for the argument 'w_j'")
-
-  if (missing(target_rates)) stop (error_target_rates)
-
-  if (!is.numeric.in.zero.one(target_rates))    stop (error_target_rates)
-  if (!is.single.positive.numeric(tau_scale))   stop (error_tau_scale)
-  if (!is.single.positive.wholenumber(n_worth)) stop (error_n_worth)
-  if (!is.single.numeric(w_j) ||
-      any(w_j < 0) ||
-      any(w_j > 1))                             stop (error_w_j)
-
+  
+  error_target_rates <- 
+    "Providing a vector of numerics in (0, 1) for the argument 'target_rates'"
+  error_tau_scale    <- 
+    "Providing a positive numeric for the argument 'tau_scale'"
+  error_n_worth      <- 
+    "Providing a positive integer for the argument 'n_worth'"
+  error_w_j          <- 
+    "Providing a numeric in (0, 1) for the argument 'w_j'"
+  
+  checkmate::assertNumeric(
+    target_rates, any.missing = FALSE, .var.name = error_target_rates
+  )
+  checkmate::assertTRUE(
+    all(target_rates > 0 & target_rates < 1), .var.name = error_target_rates
+  )
+  
+  checkmate::assertNumber(
+    tau_scale, .var.name = error_tau_scale
+  )
+  checkmate::assertTRUE(
+    tau_scale > 0, .var.name = error_tau_scale
+  )
+  
+  checkmate::assertInt(
+    n_worth, lower = 1, .var.name = error_n_worth
+  )
+  
+  checkmate::assertNumeric(
+    w_j, lower = 0, upper = 1, len = 1, .var.name = error_w_j
+  )
+  
   ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ###
-
+  
   target_rate_max_var <- target_rates[abs(target_rates - 0.5) == max(abs(target_rates - 0.5))][1]
-
+  
   mu_var <- getMuVar(target_rate_max_var, tau_scale, n_worth)
-
+  
   if (mu_var <= 0) stop(simpleError(paste(
     "The provided input parameters lead to a variance of mu <= 0.",
     "Consider to decrease 'tau_scale' or 'n_worth'")))
-
+  
   prior_parameters <- list(
     mu_mean   = logit(target_rate_max_var),
     mu_sd     = mu_var^0.5,
     tau_scale = tau_scale,
-
+    
     mu_j  = logit(target_rates),
     tau_j = getMuVar(target_rates, 0, n_worth)^0.5,
-
+    
     w_j   = w_j)
-
+  
   prior_parameters_list <- list (exnex = prior_parameters)
   class(prior_parameters_list) <- "prior_parameters_list"
-
+  
   return (prior_parameters_list)
-
+  
 }
 
 #' @title setPriorParametersExNex
@@ -507,115 +523,160 @@ getPriorParametersExNex <- function (
 #' \emph{Pharmaceutical statistics} 15.2 (2016): 123-134.
 #' @export
 setPriorParametersExNex <- function (
-
+    
   mu_mean,
   mu_sd,
   tau_scale,
-
+  
   mu_j,
   tau_j,
-
+  
   w_j
-
+  
 ) {
-
-  error_mu_mean   <- simpleError("Please provide a numeric for the argument 'mu_mean'")
-  error_mu_sd     <- simpleError("Please provide a positive numeric for the argument 'mu_sd'")
-  error_tau_scale <- simpleError("Please provide a positive numeric for the argument 'tau_scale'")
-  error_mu_j      <- simpleError("Please provide a (vector of) numeric(s) for the argument 'mu_j'")
-  error_tau_j     <- simpleError(
-    "Please provide a (vector of) positive numeric(s) for the argument 'tau_j'")
-  error_w_j   <- simpleError("Please provide a numeric in (0, 1) for the argument 'w_j'")
-
-  if (missing(mu_mean))   stop (error_mu_mean)
-  if (missing(mu_sd))     stop (error_mu_sd)
-  if (missing(tau_scale)) stop (error_tau_scale)
-  if (missing(mu_j))      stop (error_mu_j)
-  if (missing(tau_j))     stop (error_tau_j)
-  if (missing(w_j))       stop (error_w_j)
-
-  if (!is.numeric(mu_mean))                   stop (error_mu_mean)
-  if (!is.positive.numeric(mu_sd))            stop (error_mu_sd)
-  if (!is.single.positive.numeric(tau_scale)) stop (error_tau_scale)
-  if (!is.numeric(mu_j))                      stop (error_mu_j)
-  if (!is.positive.numeric(tau_j))            stop (error_tau_j)
-  if (!is.numeric(w_j) ||
-      !all(w_j >= 0) ||
-      !all(w_j <= 1))                         stop (error_w_j)
-
-  if (!identical(length(mu_mean), length(mu_sd))) stop (simpleError(
-    "'mu_mean' and 'mu_sd' must have save length"))
-
-  if (!identical(length(mu_mean), 1L)) {
-    if (!identical(length(w_j), length(mu_mean) + 1L)) stop (simpleError(
-      "'w_j' must have length equal to length(mu_mean) + 1 if length(mu_mean) > 1"))
+  
+  error_mu_mean      <- "Providing a numeric for the argument 'mu_mean'"
+  error_mu_sd        <- "Providing a positive numeric for the argument 'mu_sd'"
+  error_tau_scale    <- "Providing a positive numeric for the argument 'tau_scale'"
+  error_mu_j         <- "Providing a (vector of) numeric(s) for the argument 'mu_j'"
+  error_tau_j        <- "Providing a (vector of) positive numeric(s) for the argument 'tau_j'"
+  error_w_j          <- "Providing a numeric in (0, 1) for the argument 'w_j'"
+  error_mu_mean_sd   <- "'mu_mean' and 'mu_sd' must have same length"
+  error_mu_j_tau_j   <- "'mu_j' and 'tau_j' must have the same length"
+  error_w_j_long     <- "'w_j' must have length equal to length(mu_mean) + 1 if length(mu_mean) > 1"
+  error_w_j_short    <- "'w_j' must have length 1 or 2 if length(mu_mean) = 1"
+  error_w_j_sum      <- "Sum over items in 'w_j' must equal 1 if length(w_j) > 1"
+  
+  checkmate::assert_numeric(
+    mu_mean, any.missing = FALSE, .var.name = error_mu_mean
+  )
+  
+  checkmate::assert_numeric(
+    mu_sd, lower = 0, any.missing = FALSE, .var.name = error_mu_sd
+  )
+  checkmate::assertTRUE(
+    all(mu_sd > 0), .var.name = error_mu_sd
+  )
+  
+  checkmate::assertNumber(
+    tau_scale, .var.name = error_tau_scale
+  )
+  checkmate::assertTRUE(
+    tau_scale > 0, .var.name = error_tau_scale
+  )
+  
+  checkmate::assert_numeric(
+    mu_j, any.missing = FALSE, .var.name = error_mu_j
+  )
+  
+  checkmate::assert_numeric(
+    tau_j, any.missing = FALSE, .var.name = error_tau_j
+  )
+  checkmate::assertTRUE(
+    all(tau_j > 0), .var.name = error_tau_j
+  )
+  
+  checkmate::assert_numeric(
+    w_j, lower = 0, upper = 1, any.missing = FALSE, .var.name = error_w_j
+  )
+  
+  checkmate::assert_true(
+    length(mu_mean) == length(mu_sd), .var.name = error_mu_mean_sd
+  )
+  
+  checkmate::assert_true(
+    length(mu_j) == length(tau_j), .var.name = error_mu_j_tau_j
+  )
+  
+  if (length(mu_mean) > 1) {
+    checkmate::assert_true(
+      length(w_j) == length(mu_mean) + 1, .var.name = error_w_j_long
+    )
+  } else {
+    checkmate::assert_true(
+      length(w_j) %in% c(1, 2), .var.name = error_w_j_short
+    )
   }
-
-  if (!identical(length(w_j), 1L)) {
-    if (!identical(length(w_j), length(mu_mean) + 1L)) stop (simpleError(
-      "'w_j' must have length 1 or 2, if length(mu_mean) = 1"))
-    if (!isTRUE(all.equal(sum(w_j), 1))) stop (simpleError(
-      "Sum over items in 'w_j' must equal 1 if length(w_j) > 1"))
+  
+  if (length(w_j) > 1) {
+    checkmate::assert_true(
+      isTRUE(all.equal(sum(w_j), 1)), .var.name = error_w_j_sum
+    )
   }
-
-  if (!identical(length(mu_j), length(tau_j)))
-    stop (simpleError("mu_j and tau_j must have the same length"))
-
+  
   ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ###
-
-  prior_parameters <-  list(mu_mean   = mu_mean,
-                            mu_sd     = mu_sd,
-                            tau_scale = tau_scale,
-                            mu_j      = mu_j,
-                            tau_j     = tau_j,
-                            w_j       = w_j)
-
+  
+  prior_parameters <-  list(
+    mu_mean   = mu_mean,
+    mu_sd     = mu_sd,
+    tau_scale = tau_scale,
+    mu_j      = mu_j,
+    tau_j     = tau_j,
+    w_j       = w_j
+  )
+  
   prior_parameters_list <- list (exnex = prior_parameters)
   class(prior_parameters_list) <- "prior_parameters_list"
-
+  
   return (prior_parameters_list)
-
+  
 }
 
 ## exnex_adj ####
 
 getPriorParametersExNexAdj <- function (
-
+    
   target_rates,
   tau_scale = 1,
   n_worth   = 1,
-
+  
   w_j       = 0.5
-
+  
 ) {
-
-  error_target_rates <- simpleError(
-    paste("Please provide a vector of numerics in (0, 1) for the argument 'target_rates'"))
-  error_tau_scale    <- simpleError("Please provide a positive numeric for the argument 'tau_scale'")
-  error_n_worth      <- simpleError("Please provide a positive integer for the argument 'n_worth'")
-  error_w_j          <- simpleError("Please provide a numeric in (0, 1) for the argument 'w_j'")
-
-  if (missing(target_rates)) stop (error_target_rates)
-
-  if (!is.numeric.in.zero.one(target_rates))    stop (error_target_rates)
-  if (!is.single.positive.numeric(tau_scale))   stop (error_tau_scale)
-  if (!is.single.positive.wholenumber(n_worth)) stop (error_n_worth)
-  if (!is.single.numeric(w_j) ||
-      any(w_j < 0) ||
-      any(w_j > 1))                             stop (error_w_j)
-
+  
+  error_target_rates <- 
+    "Providing a vector of numerics in (0, 1) for the argument 'target_rates'"
+  error_tau_scale    <- 
+    "Providing a positive numeric for the argument 'tau_scale'"
+  error_n_worth      <- 
+    "Providing a positive integer for the argument 'n_worth'"
+  error_w_j          <- 
+    "Providing a numeric in (0, 1) for the argument 'w_j'"
+  
+  checkmate::assertNumeric(
+    target_rates, any.missing = FALSE, .var.name = error_target_rates
+  )
+  checkmate::assertTRUE(
+    all(target_rates > 0 & target_rates < 1), .var.name = error_target_rates
+  )
+  
+  checkmate::assertNumber(
+    tau_scale, .var.name = error_tau_scale
+  )
+  checkmate::assertTRUE(
+    tau_scale > 0, .var.name = error_tau_scale
+  )
+  
+  checkmate::assertInt(
+    n_worth, lower = 1, .var.name = error_n_worth
+  )
+  
+  checkmate::assertNumeric(
+    w_j, lower = 0, upper = 1, len = 1, .var.name = error_w_j
+  )
+  
   ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ###
-
+  
   prior_parameters <- getPriorParametersExNex(target_rates, tau_scale, n_worth, w_j)[[1]]
-
+  
   prior_parameters$mu_mean <- 0
   prior_parameters$mu_j    <- rep(0, length(target_rates))
-
+  
   prior_parameters_list <- list (exnex_adj = prior_parameters)
   class(prior_parameters_list) <- "prior_parameters_list"
-
+  
   return (prior_parameters_list)
-
+  
 }
 
 #' @title setPriorParametersExNexAdj
@@ -648,100 +709,135 @@ getPriorParametersExNexAdj <- function (
 #'  \code{\link[bhmbasket]{getMuVar}}
 #' @export
 setPriorParametersExNexAdj <- function (
-
+    
   mu_mean,
   mu_sd,
   tau_scale,
-
+  
   mu_j,
   tau_j,
-
+  
   w_j
-
+  
 ) {
-
-  error_mu_mean   <- simpleError("Please provide a numeric for the argument 'mu_mean'")
-  error_mu_sd     <- simpleError("Please provide a positive numeric for the argument 'mu_sd'")
-  error_tau_scale <- simpleError("Please provide a positive numeric for the argument 'tau_scale'")
-  error_mu_j      <- simpleError("Please provide a (vector of) numeric(s) for the argument 'mu_j'")
-  error_tau_j     <- simpleError(
-    "Please provide a (vector of) positive numeric(s) for the argument 'tau_j'")
-  error_w_j   <- simpleError("Please provide a numeric in (0, 1) for the argument 'w_j'")
-
-  if (missing(mu_mean))   stop (error_mu_mean)
-  if (missing(mu_sd))     stop (error_mu_sd)
-  if (missing(tau_scale)) stop (error_tau_scale)
-  if (missing(mu_j))      stop (error_mu_j)
-  if (missing(tau_j))     stop (error_tau_j)
-  if (missing(w_j))       stop (error_w_j)
-
-  if (!is.numeric(mu_mean))                    stop (error_mu_mean)
-  if (!is.positive.numeric(mu_sd))             stop (error_mu_sd)
-  if (!is.single.positive.numeric(tau_scale))  stop (error_tau_scale)
-  if (!is.numeric(mu_j))                       stop (error_mu_j)
-  if (!is.positive.numeric(tau_j))             stop (error_tau_j)
-  if (!is.single.numeric(w_j) ||
-      any(w_j < 0) ||
-      any(w_j > 1))                             stop (error_w_j)
-
-  if (!identical(length(mu_mean), length(mu_sd))) stop (simpleError(
-    "'mu_mean' and 'mu_sd' must have save length"))
-
-  if (!identical(length(mu_mean), 1L)) {
-    if (!identical(length(w_j), length(mu_mean) + 1L)) stop (simpleError(
-      "'w_j' must have length equal to length(mu_mean) + 1 if length(mu_mean) > 1"))
+  
+  error_mu_mean      <- "Providing a numeric for the argument 'mu_mean'"
+  error_mu_sd        <- "Providing a positive numeric for the argument 'mu_sd'"
+  error_tau_scale    <- "Providing a positive numeric for the argument 'tau_scale'"
+  error_mu_j         <- "Providing a (vector of) numeric(s) for the argument 'mu_j'"
+  error_tau_j        <- "Providing a (vector of) positive numeric(s) for the argument 'tau_j'"
+  error_w_j          <- "Providing a numeric in (0, 1) for the argument 'w_j'"
+  error_mu_mean_sd   <- "'mu_mean' and 'mu_sd' must have same length"
+  error_mu_j_tau_j   <- "'mu_j' and 'tau_j' must have the same length"
+  error_w_j_long     <- "'w_j' must have length equal to length(mu_mean) + 1 if length(mu_mean) > 1"
+  error_w_j_short    <- "'w_j' must have length 1 or 2 if length(mu_mean) = 1"
+  error_w_j_sum      <- "Sum over items in 'w_j' must equal 1 if length(w_j) > 1"
+  
+  checkmate::assert_numeric(
+    mu_mean, any.missing = FALSE, .var.name = error_mu_mean
+  )
+  
+  checkmate::assert_numeric(
+    mu_sd, lower = 0, any.missing = FALSE, .var.name = error_mu_sd
+  )
+  checkmate::assertTRUE(
+    all(mu_sd > 0), .var.name = error_mu_sd
+  )
+  
+  checkmate::assertNumber(
+    tau_scale, .var.name = error_tau_scale
+  )
+  checkmate::assertTRUE(
+    tau_scale > 0, .var.name = error_tau_scale
+  )
+  
+  checkmate::assert_numeric(
+    mu_j, any.missing = FALSE, .var.name = error_mu_j
+  )
+  
+  checkmate::assert_numeric(
+    tau_j, any.missing = FALSE, .var.name = error_tau_j
+  )
+  checkmate::assertTRUE(
+    all(tau_j > 0), .var.name = error_tau_j
+  )
+  
+  checkmate::assert_numeric(
+    w_j, lower = 0, upper = 1, any.missing = FALSE, .var.name = error_w_j
+  )
+  
+  checkmate::assert_true(
+    length(mu_mean) == length(mu_sd), .var.name = error_mu_mean_sd
+  )
+  
+  checkmate::assert_true(
+    length(mu_j) == length(tau_j), .var.name = error_mu_j_tau_j
+  )
+  
+  if (length(mu_mean) > 1) {
+    checkmate::assert_true(
+      length(w_j) == length(mu_mean) + 1, .var.name = error_w_j_long
+    )
+  } else {
+    checkmate::assert_true(
+      length(w_j) %in% c(1, 2), .var.name = error_w_j_short
+    )
   }
-
-  if (!identical(length(w_j), 1L)) {
-    if (!identical(length(w_j), length(mu_mean) + 1L)) stop (simpleError(
-      "'w_j' must have length 1 or 2, if length(mu_mean) = 1"))
+  
+  if (length(w_j) > 1) {
+    checkmate::assert_true(
+      isTRUE(all.equal(sum(w_j), 1)), .var.name = error_w_j_sum
+    )
   }
-
-  if (!identical(length(mu_j), length(tau_j)))
-    stop (simpleError("mu_j and tau_j must have the same length"))
-
+  
   ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ###
-
+  
   prior_parameters_list <- setPriorParametersExNex(mu_mean, mu_sd, tau_scale, mu_j, tau_j, w_j)
   names(prior_parameters_list) <- "exnex_adj"
-
+  
   return (prior_parameters_list)
-
+  
 }
 
 ## pooled ####
 
 getPriorParametersPooled <- function (
-
+    
   target_rates,
   n_worth = 1
-
+  
 ) {
-
-  error_target_rates <- simpleError(
-    "Please provide a vector of numerics in (0, 1) for the argument 'target_rates'")
-  error_n_worth      <- simpleError(
-    "Please provide a positive integer for the argument 'n_worth'")
-
-  if (missing(target_rates)) stop (error_target_rates)
-
-  if (!is.numeric.in.zero.one(target_rates))    stop (error_target_rates)
-  if (!is.single.positive.wholenumber(n_worth)) stop (error_n_worth)
-
+  
+  error_target_rates <- 
+    "Providing a vector of numerics in (0, 1) for the argument 'target_rates'"
+  error_n_worth      <- 
+    "Providing a positive integer for the argument 'n_worth'"
+  
+  checkmate::assertNumeric(
+    target_rates, any.missing = FALSE, .var.name = error_target_rates
+  )
+  checkmate::assertTRUE(
+    all(target_rates > 0 & target_rates < 1), .var.name = error_target_rates
+  )
+  
+  checkmate::assertInt(
+    n_worth, lower = 1, .var.name = error_n_worth
+  )
+  
   ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ###
-
+  
   target_rate_min_var <- target_rates[abs(target_rates - 0.5) == min(abs(target_rates - 0.5))][1]
-
+  
   a <- target_rate_min_var * n_worth
   b <- (1 - target_rate_min_var) * n_worth
-
+  
   prior_parameters <- list(a = a, b = b)
-
+  
   prior_parameters_list        <- list(pooled = prior_parameters)
   class(prior_parameters_list) <- "prior_parameters_list"
-
+  
   return (prior_parameters_list)
-
+  
 }
 
 #' @title setPriorParametersPooled
@@ -769,65 +865,77 @@ getPriorParametersPooled <- function (
 #'  \code{\link[bhmbasket]{getMuVar}}
 #' @export
 setPriorParametersPooled <- function (
-
+    
   a,
   b
-
+  
 ) {
-
-  error_a <- simpleError(
-    "Please provide a positive numeric for the argument 'a'")
-  error_b <- simpleError(
-    "Please provide a positive numeric for the argument 'b'")
-
-  if (missing(a)) stop (error_a)
-  if (missing(b)) stop (error_b)
-
-  if (!is.single.positive.numeric(a)) stop (error_a)
-  if (!is.single.positive.numeric(b)) stop (error_b)
-
+  
+  error_a <- "Providing a positive numeric for the argument 'a'"
+  error_b <- "Providing a positive numeric for the argument 'b'"
+  
+  checkmate::assertNumber(
+    a, .var.name = error_a
+  )
+  checkmate::assertTRUE(
+    a > 0, .var.name = error_a
+  )
+  
+  checkmate::assertNumber(
+    b, .var.name = error_b
+  )
+  checkmate::assertTRUE(
+    b > 0, .var.name = error_b
+  )
+  
   ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ###
-
+  
   prior_parameters <- list(a = a, b = b)
-
+  
   prior_parameters_list        <- list(pooled = prior_parameters)
   class(prior_parameters_list) <- "prior_parameters_list"
-
+  
   return (prior_parameters_list)
-
+  
 }
 
 ## stratified ####
 
 getPriorParametersStratified <- function (
-
+    
   target_rates,
   n_worth = 1
-
+  
 ) {
-
-  error_target_rates <- simpleError(
-    "Please provide a vector of numerics in (0, 1) for the argument 'target_rates'")
-  error_n_worth      <- simpleError(
-    "Please provide a positive integer for the argument 'n_worth'")
-
-  if (missing(target_rates)) stop (error_target_rates)
-
-  if (!is.numeric.in.zero.one(target_rates))    stop (error_target_rates)
-  if (!is.single.positive.wholenumber(n_worth)) stop (error_n_worth)
-
+  
+  error_target_rates <- 
+    "Providing a vector of numerics in (0, 1) for the argument 'target_rates'"
+  error_n_worth      <- 
+    "Providing a positive integer for the argument 'n_worth'"
+  
+  checkmate::assertNumeric(
+    target_rates, any.missing = FALSE, .var.name = error_target_rates
+  )
+  checkmate::assertTRUE(
+    all(target_rates > 0 & target_rates < 1), .var.name = error_target_rates
+  )
+  
+  checkmate::assertInt(
+    n_worth, lower = 1, .var.name = error_n_worth
+  )
+  
   ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ###
-
+  
   a_j <- target_rates * n_worth
   b_j <- (1 - target_rates) * n_worth
-
+  
   prior_parameters <- list(a_j = a_j, b_j = b_j)
-
+  
   prior_parameters_list        <- list(stratified = prior_parameters)
   class(prior_parameters_list) <- "prior_parameters_list"
-
+  
   return (prior_parameters_list)
-
+  
 }
 
 #' @title setPriorParametersStratified
@@ -855,35 +963,41 @@ getPriorParametersStratified <- function (
 #'  \code{\link[bhmbasket]{getMuVar}}
 #' @export
 setPriorParametersStratified <- function (
-
+    
   a_j,
   b_j
-
+  
 ) {
-
-  error_a_j <- simpleError(
-    "Please provide a (vector of) positive numeric(s) in for the argument 'a_j'")
-  error_b_j <- simpleError(
-    "Please provide a (vector of) positive numeric(s) in for the argument 'b_j'")
-
-  if (missing(a_j)) stop (error_a_j)
-  if (missing(b_j)) stop (error_b_j)
-
-  if (!is.positive.numeric(a_j)) stop (error_a_j)
-  if (!is.positive.numeric(b_j)) stop (error_b_j)
-
-  if (!identical(length(a_j), length(b_j)))
-    stop (simpleError("a_j and b_j must have the same length"))
-
+  
+  error_a_j          <- "Providing a (vector of) positive numeric(s) for the argument 'a_j'"
+  error_b_j          <- "Providing a (vector of) positive numeric(s) for the argument 'b_j'"
+  error_a_j_b_j_len  <- "a_j and b_j must have the same length"
+  
+  checkmate::assertNumeric(
+    a_j, any.missing = FALSE, .var.name = error_a_j
+  )
+  checkmate::assertTRUE(
+    all(a_j > 0), .var.name = error_a_j
+  )
+  
+  checkmate::assertNumeric(
+    b_j, any.missing = FALSE, .var.name = error_b_j
+  )
+  checkmate::assertTRUE(
+    all(b_j > 0), .var.name = error_b_j
+  )
+  
+  checkmate::assertTRUE(
+    length(a_j) == length(b_j), .var.name = error_a_j_b_j_len
+  )
+  
   ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ###
-
+  
   prior_parameters <- list(a_j = a_j, b_j = b_j)
-
+  
   prior_parameters_list        <- list(stratified = prior_parameters)
   class(prior_parameters_list) <- "prior_parameters_list"
-
+  
   return (prior_parameters_list)
-
+  
 }
-
-

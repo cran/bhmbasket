@@ -1,4 +1,4 @@
-## ---- include = FALSE---------------------------------------------------------
+## ----include = FALSE----------------------------------------------------------
 knitr::opts_chunk$set(
   eval     = TRUE,  # en- / disables R code evaluation globally
   cache    = FALSE,  # en- / disables R code caching globally
@@ -86,7 +86,7 @@ if (file.exists("analyses_list.rds")) {
   
 }
 
-## ---- include = FALSE---------------------------------------------------------
+## ----include = FALSE----------------------------------------------------------
 ## check for unnecessary data
 if (any(grepl("mu_",
               colnames(analyses_list$scenario_1$quantiles_list$exnex[[1]])))) {
@@ -132,15 +132,15 @@ scaleRoundList(
   scale_param  = 100,
   round_digits = 2)
 
-## ---- eval = FALSE------------------------------------------------------------
-#  cohort_names    = "p_1"
-#  boundary_rules  = quote(c(x[1] > 0.1))
-#  evidence_levels = 0.9
+## ----eval = FALSE-------------------------------------------------------------
+# cohort_names    = "p_1"
+# boundary_rules  = quote(c(x[1] > 0.1))
+# evidence_levels = 0.9
 
-## ---- eval = FALSE------------------------------------------------------------
-#  cohort_names    = c("p_1", "p_1")
-#  boundary_rules  = quote(c(x[1] > 0.1 & x[2] > 0.2))
-#  evidence_levels = c(0.9, "mean")
+## ----eval = FALSE-------------------------------------------------------------
+# cohort_names    = c("p_1", "p_1")
+# boundary_rules  = quote(c(x[1] > 0.1 & x[2] > 0.2))
+# evidence_levels = c(0.9, "mean")
 
 ## ----getGoDecisions-----------------------------------------------------------
 decisions_list <- getGoDecisions(

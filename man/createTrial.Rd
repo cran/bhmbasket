@@ -20,11 +20,13 @@ for a single trial outcome, which can subsequently be analyzed with other functi
 \code{bhmbasket}, e.g. \code{\link[bhmbasket]{performAnalyses}}
 }
 \details{
-This function is a wrapper for \code{\link[bhmbasket]{simulateScenarios}} with\preformatted{simulateScenarios(
+This function is a wrapper for \code{\link[bhmbasket]{simulateScenarios}} with
+
+\if{html}{\out{<div class="sourceCode">}}\preformatted{simulateScenarios(
  n_subjects_list     = list(n_subjects),
  response_rates_list = list(n_responders),
  n_trials            = 1)
-}
+}\if{html}{\out{</div>}}
 }
 \examples{
  trial_outcome <- createTrial(n_subjects   = c(10, 20, 30, 40),

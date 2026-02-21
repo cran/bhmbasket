@@ -1,11 +1,16 @@
 Package: bhmbasket
 Title: Bayesian Hierarchical Models for Basket Trials
-Version: 0.9.5
+Version: 1.0.0
 Authors@R: 
+  c(
     person(given = 'Stephan',
            family = 'Wojciekowski',
            role = c('aut', 'cre'),
-           email = 'stephan.wojciekowski@boehringer-ingelheim.com')
+           email = 'stephan.wojciekowski@boehringer-ingelheim.com'),
+    person(given = 'Tathagata',
+           family = 'Chattopadhyay',
+           role = 'aut',
+           email = 'tchattopadhyay6@gmail.com'))
 Description: Provides functions for the evaluation of basket
     trial designs with binary endpoints. Operating characteristics of a
     basket trial design are assessed by simulating trial data according to
@@ -24,17 +29,22 @@ Description: Provides functions for the evaluation of basket
     For simulated trial data, bias and mean squared errors of posterior
     point estimates for response rates can be provided.
 License: GPL-3
-URL: https://CRAN.R-project.org/package=bhmbasket
-Depends: R (>= 3.5.0)
-Imports: foreach, doRNG, R2jags (>= 0.7-1)
-Suggests: doFuture, future, knitr, rmarkdown
+URL: https://CRAN.R-project.org/package=bhmbasket,
+        https://github.com/Boehringer-Ingelheim/bhmbasket
+BugReports: https://github.com/Boehringer-Ingelheim/bhmbasket/issues
+Depends: R (>= 3.6.0)
+Imports: foreach, doRNG, rjags, checkmate
+Suggests: doFuture, future, knitr, rmarkdown, testthat (>= 3.0.0)
 VignetteBuilder: knitr
 Encoding: UTF-8
-RoxygenNote: 7.1.2
+RoxygenNote: 7.3.2
+Language: en-US
 SystemRequirements: JAGS 4.x.y (http://mcmc-jags.sourceforge.net)
+Config/testthat/edition: 3
 NeedsCompilation: no
-Packaged: 2022-02-14 14:09:09 UTC; Stephan
-Author: Stephan Wojciekowski [aut, cre]
+Packaged: 2026-02-20 17:00:15 UTC; wojcie
+Author: Stephan Wojciekowski [aut, cre],
+  Tathagata Chattopadhyay [aut]
 Maintainer: Stephan Wojciekowski <stephan.wojciekowski@boehringer-ingelheim.com>
 Repository: CRAN
-Date/Publication: 2022-02-14 14:40:02 UTC
+Date/Publication: 2026-02-21 06:10:56 UTC

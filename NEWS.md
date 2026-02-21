@@ -1,3 +1,49 @@
+# bhmbasket 1.0.0
+
+### New and Altered Features
+
+* Added structured unit tests for core functionality
+
+* Integrated code coverage
+
+* Replaced validation logic with checkmate assertions and removed unused helper functions
+
+* Replaced dependency on R2jags to rjags
+
+* Added Github Actions workflows for automated R CMD check and CI validation
+
+* Minor changes in code
+
+# bhmbasket 0.9.6
+
+### Fixed Bugs
+
+* Fixed a bug in getEstimates(), which used to calculate variances instead of the standard deviations of response rates estimated with the methods pooled and stratified
+
+### New & Altered Features
+
+* Added print methods for scenario_list, analysis_list, and decision_list objects
+
+* Added function getAverageNSubjects()
+
+* Switched from R2jags to rjags for performance increase
+
+* Performance increases in performAnalyses(), getEstimates(), and getGoDecisions()
+
+* getGoDecisions() saves the decisions rules used to derive the decisions
+
+* In continueRecruitment(), the argument method_name can be omitted if only one method has been used in performAnalyses()
+
+* Caution message in performAnalyses() if no parallel backend is detected disabled for methods stratified and pooled
+
+* Changed message from performAnalyses()
+
+* Disabled loading package messages when calling functions from other packages
+
+* Updated Imports in DESCRIPTION
+
+* Minor changes in code
+
 # bhmbasket 0.9.5
 
 ### Fixed Bugs

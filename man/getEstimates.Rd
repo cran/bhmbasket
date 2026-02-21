@@ -33,7 +33,7 @@ Estimates of bias and MSE are included for response rate estimates of simulated 
 }
 \description{
 This function calculates the point estimates and credible intervals per cohort,
-as well as estimates of the biases and the mean squared errors of the point estimates per cohort
+as well as estimates of the biases and the mean squared errors of the point estimates per cohort.
 }
 \details{
 Bias and MSE will only be calculated for response rate estimates of simulated trials.
@@ -77,6 +77,7 @@ The latter two models can also access the posterior weights
 }
 \seealso{
 \code{\link[bhmbasket]{createTrial}}
+\code{\link[bhmbasket]{simulateScenarios}}
 \code{\link[bhmbasket]{performAnalyses}}
 }
 \author{

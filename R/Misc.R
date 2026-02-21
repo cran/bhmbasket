@@ -55,6 +55,12 @@ firstUpper <- function (string) {
   
 }
 
+getBlankString <- function (length) {
+  
+  do.call(paste0, as.list(rep(" ", length)))
+  
+}
+
 getHashKeys <- function (x) {
   
   x <- convertVector2Matrix(x)
@@ -197,83 +203,75 @@ listPerMethod <- function (
 #' @seealso
 #'  \code{\link[stats]{family}}
 #' @export
+
 logit <- function (p) {
-
+  
   error_p <- simpleError("Please provide a numeric in (0, 1) for the argument 'p'")
-
-  if (missing(p))                          stop (error_p)
-  if (any(!is.numeric(p) | p < 0 | p > 1)) stop (error_p)
-
+  
+  if (missing(p)) stop(error_p)
+  
+  # replace is.numeric
+  if (!checkmate::test_numeric(p, any.missing = FALSE)) stop(error_p)
+  if (any(p < 0 | p > 1)) stop(error_p)
+  
   stats::binomial()$linkfun(p)
-
 }
+
 
 roundList <- function (list, round_digits, list_levels) {
   
-  if (is.null(round_digits)) return (list)
+  if (is.null(round_digits)) return(list)
   
   round_expression <- quote({
-    if (is.numeric(a)) {
+    if (checkmate::test_numeric(a)) {
       round(a, round_digits)
     } else {
-      stop (simpleError("The list must contain numerics"))
+      stop(simpleError("The list must contain numerics"))
     }
   })
   
   if (list_levels == 1) {
-    
-    return (lapply(list, function (a) eval(round_expression)))
+    return(lapply(list, function(a) eval(round_expression)))
     
   } else if (list_levels == 2) {
-    
-    return (lapply(list, function (x)
-      lapply(x, function (a) eval(round_expression))))
+    return(lapply(list, function(x)
+      lapply(x, function(a) eval(round_expression))))
     
   } else if (list_levels == 3) {
-    
-    return (lapply(list, function (x)
-      lapply(x, function (y)
-        lapply(y, function (a) eval(round_expression)))))
+    return(lapply(list, function(x)
+      lapply(x, function(y)
+        lapply(y, function(a) eval(round_expression)))))
     
   } else {
-    
-    stop ("lists with a nested depth greater than 3 are not supported")
-    
+    stop("lists with a nested depth greater than 3 are not supported")
   }
-  
 }
 
 scaleList <- function (list, scale_param, list_levels) {
   
   scale_expression <- quote({
-    if (is.numeric(a)) {
+    if (checkmate::test_numeric(a)) {
       a * scale_param
     } else {
-      stop (simpleError("The list must contain numerics"))
+      stop(simpleError("The list must contain numerics"))
     }
   })
   
   if (list_levels == 1) {
-    
-    return (lapply(list, function (a) eval(scale_expression)))
+    return(lapply(list, function(a) eval(scale_expression)))
     
   } else if (list_levels == 2) {
-    
-    return (lapply(list, function (x)
-      lapply(x, function (a) eval(scale_expression))))
+    return(lapply(list, function(x)
+      lapply(x, function(a) eval(scale_expression))))
     
   } else if (list_levels == 3) {
-    
-    return (lapply(list, function (x)
-      lapply(x, function (y)
-        lapply(y, function (a) eval(scale_expression)))))
+    return(lapply(list, function(x)
+      lapply(x, function(y)
+        lapply(y, function(a) eval(scale_expression)))))
     
   } else {
-    
-    stop ("lists with a nested depth greater than 3 are not supported")
-    
+    stop("lists with a nested depth greater than 3 are not supported")
   }
-  
 }
 
 #' @title scaleRoundList
@@ -305,7 +303,7 @@ scaleList <- function (list, scale_param, list_levels) {
 #'   round_digits = 2)
 #' @export
 scaleRoundList <- function(
-  
+    
   list,
   scale_param  = 1,
   round_digits = NULL
@@ -315,25 +313,33 @@ scaleRoundList <- function(
   error_list  <- simpleError(
     "Please provide a list (of lists) of numerics for the argument 'list'")
   error_scale_param <- simpleError(
-    "Please provide a positive numeric for the argument 'scale_param'")
+    "Providing a positive numeric for the argument 'scale_param'")
   error_round_digits <- simpleError(
-    "Please provide a positive integer for the argument 'round_digits'")
+    "Providing a positive integer for the argument 'round_digits'")
   
-  if (missing(list))                                     stop (error_list)
+  if (missing(list)) stop(error_list)
+  if (!is.list(list)) stop(error_list)
   
-  if (!is.list(list))                                    stop (error_list)
-  if (!is.single.positive.numeric(scale_param))          stop (scale_param)
-  if (!is.null(round_digits) &&
-      !is.single.non.negative.wholenumber(round_digits)) stop (error_round_digits)
+  checkmate::assert_number(scale_param, finite = TRUE,
+                           .var.name = error_scale_param)
+  checkmate::assertTRUE(scale_param > 0, .var.name = error_scale_param)
+
+  if (!is.null(round_digits)) {
+    checkmate::assert_integerish(round_digits, lower = 0, len = 1,
+                                 .var.name = error_round_digits)
+  }
   
-  ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ###
+########### ######### ########## ########### #############
   
   list_levels <- getListLevel(list)
   
-  out_list    <- roundList(scaleList(list, scale_param, list_levels),
-                           round_digits, list_levels)
+  out_list <- roundList(
+    scaleList(list, scale_param, list_levels),
+    round_digits,
+    list_levels
+  )
   
-  return (out_list)
+  return(out_list)
   
 }
 

@@ -1,5 +1,5 @@
 applicablePreviousTrials <- function(
-  
+    
   scenario_list,
   method_names,
   quantiles,
@@ -47,18 +47,18 @@ applicablePreviousTrials <- function(
 }
 
 calcDiffsMCMC <- function (
-  
-  posterior_distributions,
+    
+  posterior_samples,
   calc_differences
   
 ) {
   
-  org_names <- colnames(posterior_distributions)
+  org_names <- colnames(posterior_samples)
   
   diffs <- apply(calc_differences, 1, function (x) {
     
-    matrix(posterior_distributions[, grepl(x[1], org_names) & grepl("p", org_names)] -
-             posterior_distributions[, grepl(x[2], org_names) & grepl("p", org_names)],
+    matrix(posterior_samples[, grepl(x[1], org_names) & grepl("p", org_names)] -
+             posterior_samples[, grepl(x[2], org_names) & grepl("p", org_names)],
            ncol = 1)
     
   })
@@ -71,9 +71,9 @@ calcDiffsMCMC <- function (
   
   colnames(diffs) <- diff_names
   
-  posterior_distributions <- cbind(posterior_distributions, diffs)
+  posterior_samples <- cbind(posterior_samples, diffs)
   
-  return (posterior_distributions)
+  return (posterior_samples)
   
 }
 
@@ -108,7 +108,7 @@ getModelFile <- function (method_name) {
 }
 
 getPosteriors <- function (
-  
+    
   j_parameters,
   j_model_file,
   j_data,
@@ -117,48 +117,38 @@ getPosteriors <- function (
   
 ) {
   
-  jags_fit <- R2jags::jags(data               = j_data,
-                           parameters.to.save = j_parameters,
-                           model.file         = j_model_file,
-                           n.chains           = 2,
-                           n.iter             = n_mcmc_iterations,
-                           n.burnin           = floor(n_mcmc_iterations / 3),
-                           n.thin             = 1,
-                           DIC                = FALSE,
-                           progress.bar       = "none",
-                           jags.module        = NULL,#"mix",
-                           quiet              = TRUE)
+  ## Adaption and burn-in not included
+  posterior_samples <- performJags(
+    data               = j_data,
+    parameters_to_save = j_parameters,
+    model_file         = j_model_file, 
+    n_iter             = n_mcmc_iterations)
   
-  ## Adaption and burn-in not included in sims.array
-  posterior_distributions <- rbind(jags_fit$BUGSoutput$sims.array[, 1, ],
-                                   jags_fit$BUGSoutput$sims.array[, 2, ])
+  ## replace squarebrackets provided by rjags with workable characters
+  colnames(posterior_samples) <- gsub("\\[", "_", colnames(posterior_samples))
+  colnames(posterior_samples) <- gsub("\\]", "", colnames(posterior_samples))
   
-  ## replace squarebrackets provided by R2jags with workable characters
-  colnames(posterior_distributions) <- gsub("\\[", "_", colnames(posterior_distributions))
-  colnames(posterior_distributions) <- gsub("\\]", "", colnames(posterior_distributions))
-  
-  weights_indices <- grepl("exch", colnames(posterior_distributions))
+  weights_indices <- grepl("exch", colnames(posterior_samples))
   if (any(weights_indices)) {
     
-    superfluous_weights <- !grepl(",1", colnames(posterior_distributions))
+    superfluous_weights <- !grepl(",1", colnames(posterior_samples))
     
-    colnames(posterior_distributions)[weights_indices] <-
+    colnames(posterior_samples)[weights_indices] <-
       paste0("w_", seq_along(j_data$n))
     
-    posterior_distributions <- posterior_distributions[, !(weights_indices & superfluous_weights)]
+    posterior_samples <- posterior_samples[, !(weights_indices & superfluous_weights)]
     
   }
   
-  return (posterior_distributions)
+  return (posterior_samples)
   
 }
 
 getPostQuantiles <- function (
-  
+    
   ## The method to be applied to the likelihood and the quantiles of the posterior
   method_name,
   quantiles,
-  post_mean,
   
   ## Scenario data
   scenario_data,
@@ -199,57 +189,54 @@ getPostQuantiles <- function (
   ## prepare foreach loop over 
   
   exported_stuff <- c(
-    # "scenario_data", "j_data", "post_mean", "quantiles",
-    # "calc_differences", "j_parameters", "j_model_file", "n_mcmc_iterations",
-    # "save_path", "save_trial", "method_name",
     "posteriors2Quantiles", "getPosteriors", "getPostQuantilesOfTrial",
-    "qbetaDiff")
+    "qbetaDiff", "chunkVector")
   
   ## prepare chunking
   chunks_outer <- chunkVector(seq_len(n_analyses), foreach::getDoParWorkers())
   
   "%dorng%" <- doRNG::"%dorng%"
   "%dopar%" <- foreach::"%dopar%"
-  posterior_quantiles_list <- foreach::foreach(
-    k = chunks_outer,
-    .combine  = c,
-    .verbose  = FALSE,
-    .packages = c("R2jags"),
-    .export   = exported_stuff) %dorng% {
-      
-      chunks_inner <- chunkVector(k, foreach::getDoParWorkers())
-      
-      foreach::foreach(i = chunks_inner, .combine = c) %dorng% {
+  posterior_quantiles_list <- suppressMessages(
+    foreach::foreach(
+      k = chunks_outer,
+      .combine  = c,
+      .verbose  = FALSE,
+      .packages = c("rjags"),
+      .export   = exported_stuff) %dorng% {
         
-        lapply(i, function (j) {
-          
-          ## Calculate the posterior quantiles for the kth unique trial outcome
-          getPostQuantilesOfTrial(
-            n_responders      = as.numeric(scenario_data$n_responders[j, ]),
-            n_subjects        = as.numeric(scenario_data$n_subjects[j, ]),
-            j_data            = j_data,
-            j_parameters      = j_parameters,
-            j_model_file      = j_model_file,
-            method_name       = method_name,
-            quantiles         = quantiles,
-            post_mean         = post_mean,
-            calc_differences  = calc_differences,
-            n_mcmc_iterations = n_mcmc_iterations,
-            save_path         = save_path,
-            save_trial        = save_trial)
-          
-        })
+        chunks_inner <- chunkVector(k, foreach::getDoParWorkers())
         
-      }
-      
-    }
+        foreach::foreach(i = chunks_inner, .combine = c) %dorng% {
+          
+          lapply(i, function (j) {
+            
+            ## Calculate the posterior quantiles for the kth unique trial outcome
+            getPostQuantilesOfTrial(
+              n_responders      = as.numeric(scenario_data$n_responders[j, ]),
+              n_subjects        = as.numeric(scenario_data$n_subjects[j, ]),
+              j_data            = j_data,
+              j_parameters      = j_parameters,
+              j_model_file      = j_model_file,
+              method_name       = method_name,
+              quantiles         = quantiles,
+              calc_differences  = calc_differences,
+              n_mcmc_iterations = n_mcmc_iterations,
+              save_path         = save_path,
+              save_trial        = save_trial)
+            
+          })
+          
+        }
+        
+      })
   
   return (posterior_quantiles_list)
   
 }
 
 getPostQuantilesOfTrial <- function (
-  
+    
   n_responders,
   n_subjects,
   
@@ -258,7 +245,6 @@ getPostQuantilesOfTrial <- function (
   j_model_file,
   method_name,
   quantiles,
-  post_mean,
   calc_differences,
   n_mcmc_iterations,
   
@@ -275,7 +261,6 @@ getPostQuantilesOfTrial <- function (
     posterior_quantiles <- getPostQuantilesStratified(
       j_data            = j_data,
       quantiles         = quantiles,
-      post_mean         = post_mean,
       calc_differences  = calc_differences,
       n_mcmc_iterations = n_mcmc_iterations)
     
@@ -284,13 +269,12 @@ getPostQuantilesOfTrial <- function (
     posterior_quantiles <- getPostQuantilesPooled(
       j_data           = j_data,
       quantiles        = quantiles,
-      post_mean        = post_mean,
       calc_differences = calc_differences)
     
   } else {
     
     ## Get posterior response rates per indication
-    posterior_distributions <- getPosteriors(
+    posterior_samples <- getPosteriors(
       j_parameters      = j_parameters,
       j_model_file      = j_model_file,
       j_data            = j_data,
@@ -299,9 +283,9 @@ getPostQuantilesOfTrial <- function (
     ## Calculate differences between response rates of cohorts
     if (!is.null(calc_differences)) {
       
-      posterior_distributions <- calcDiffsMCMC(
-        posterior_distributions = posterior_distributions,
-        calc_differences        = calc_differences)
+      posterior_samples <- calcDiffsMCMC(
+        posterior_samples = posterior_samples,
+        calc_differences  = calc_differences)
       
     }
     
@@ -309,8 +293,8 @@ getPostQuantilesOfTrial <- function (
     ## due to time and storage space constraints only one simulation
     if (!is.null(save_path)) {
       if (k == save_trial) {
-        saveRDS(posterior_distributions,
-                file = file.path(save_path, paste0("posterior_distributions_",
+        saveRDS(posterior_samples,
+                file = file.path(save_path, paste0("posterior_samples_",
                                                    k, "_", method_name, "_rds")))
       }
     }
@@ -318,8 +302,7 @@ getPostQuantilesOfTrial <- function (
     ## Calculate the required quantiles for the decision rules
     posterior_quantiles <- posteriors2Quantiles(
       quantiles  = quantiles,
-      post_mean  = post_mean,
-      posteriors = posterior_distributions)
+      posteriors = posterior_samples)
     
   }
   
@@ -328,10 +311,9 @@ getPostQuantilesOfTrial <- function (
 }
 
 getPostQuantilesPooled <- function(
-  
+    
   j_data,
   quantiles,
-  post_mean,
   calc_differences
   
 ) {
@@ -347,15 +329,11 @@ getPostQuantilesPooled <- function(
   colnames(posterior_quantiles) <- paste0("p_", seq_along(j_data$r))
   rownames(posterior_quantiles) <- paste0(quantiles * 100, "%")
   
-  if (post_mean) {
-    
-    posterior_mean      <- shape_1 / (shape_1 + shape_2)
-    posterior_sd        <- shape_1 * shape_2 / ((shape_1 + shape_2)^2 * (shape_1 + shape_2 + 1))
-    posterior_quantiles <- rbind(posterior_quantiles,
-                                 Mean = posterior_mean,
-                                 SD   = posterior_sd)
-    
-  }
+  posterior_mean      <- shape_1 / (shape_1 + shape_2)
+  posterior_sd        <- ((shape_1 * shape_2) / ((shape_1 + shape_2)^2 * (shape_1 + shape_2 + 1)))^0.5
+  posterior_quantiles <- rbind(posterior_quantiles,
+                               Mean = posterior_mean,
+                               SD   = posterior_sd)
   
   if (!is.null(calc_differences)) {
     
@@ -382,10 +360,9 @@ getPostQuantilesPooled <- function(
 }
 
 getPostQuantilesStratified <- function(
-  
+    
   j_data,
   quantiles,
-  post_mean,
   calc_differences,
   n_mcmc_iterations
   
@@ -406,15 +383,11 @@ getPostQuantilesStratified <- function(
   colnames(posterior_quantiles) <- paste0("p_", seq_along(j_data$a_j))
   rownames(posterior_quantiles) <- paste0(quantiles * 100, "%")
   
-  if (post_mean) {
-    
-    posterior_mean      <- shape_1 / (shape_1 + shape_2)
-    posterior_sd        <- shape_1 * shape_2 / ((shape_1 + shape_2)^2 * (shape_1 + shape_2 + 1))
-    posterior_quantiles <- rbind(posterior_quantiles,
-                                 Mean = posterior_mean,
-                                 SD   = posterior_sd)
-    
-  }
+  posterior_mean      <- shape_1 / (shape_1 + shape_2)
+  posterior_sd        <- ((shape_1 * shape_2) / ((shape_1 + shape_2)^2 * (shape_1 + shape_2 + 1)))^0.5
+  posterior_quantiles <- rbind(posterior_quantiles,
+                               Mean = posterior_mean,
+                               SD   = posterior_sd)
   
   if (!is.null(calc_differences)) {
     
@@ -422,7 +395,6 @@ getPostQuantilesStratified <- function(
       
       matrix(qbetaDiff(
         quantiles  = quantiles,
-        post_mean  = post_mean,
         x_1_shape1 = shape_1[x[1]],
         x_1_shape2 = shape_2[x[1]],
         x_2_shape1 = shape_1[x[2]],
@@ -444,6 +416,40 @@ getPostQuantilesStratified <- function(
   }
   
   return (posterior_quantiles)
+  
+}
+
+getUniqueRows <- function (
+    
+  matrix
+  
+) {
+  
+  n_rows      <- nrow(matrix)
+  n_cols      <- ncol(matrix)
+  
+  unique_rows <- stats::aggregate(id ~ .,
+                                  data = cbind(id = seq_along(n_rows), matrix),
+                                  FUN  = length)
+  
+  return (unique_rows[, seq_len(n_cols)])
+  
+}
+
+getUniqueTrials <- function (
+    
+  scenario_list
+  
+) {
+  
+  all_scenarios_n_responders <- do.call(rbind, lapply(scenario_list, function (x) x$n_responders))
+  all_scenarios_n_subjects   <- do.call(rbind, lapply(scenario_list, function (x) x$n_subjects))
+  all_scenarios_overall_gos  <- do.call(rbind, lapply(scenario_list, function (x) 
+    x$previous_analyses$go_decisions))[, 1]
+  
+  return (getUniqueRows(cbind(all_scenarios_n_responders,
+                              all_scenarios_n_subjects,
+                              go_flag = all_scenarios_overall_gos)))
   
 }
 
@@ -487,27 +493,51 @@ is.analysis_list <- function (x) {
 #' @author Stephan Wojciekowski
 #' @export
 loadAnalyses <- function (
-  
+    
   scenario_numbers,
   analysis_numbers = rep(1, length(scenario_numbers)),
   load_path        = tempdir()
   
 ) {
   
-  error_scenario_numbers <- simpleError(
-    "Please provide a vector of positive integers for the argument 'scenario_numbers'")
-  error_analysis_numbers <- simpleError(
-    "Please provide a vector of positive integers for the argument 'analysis_numbers'")
-  error_load_path        <- simpleError(
-    "Please provide a string containing a path for the argument 'load_path'")
+  error_scenario_numbers <-
+    "Please provide a vector of positive integers for the argument 'scenario_numbers'"
+  error_analysis_numbers <-
+    "Please provide a vector of positive integers for the argument 'analysis_numbers'"
+  error_load_path <-
+    "Please provide a string containing a path for the argument 'load_path'"
+  error_len_match <-
+    "'scenario_numbers' and 'analysis_numbers' must have equal length"
   
-  if (missing(scenario_numbers)) stop (error_scenario_numbers)
+  checkmate::assertNumeric(
+    scenario_numbers,
+    any.missing = FALSE,
+    .var.name   = error_scenario_numbers
+  )
+  checkmate::assertIntegerish(
+    scenario_numbers,
+    lower     = 1,
+    .var.name = error_scenario_numbers
+  )
   
-  if (!is.character(load_path) || length(load_path) > 1) stop (error_load_path)
+  checkmate::assertIntegerish(
+    analysis_numbers,
+    lower       = 1,
+    any.missing = FALSE,
+    .var.name   = error_analysis_numbers
+  )
   
-  if (!identical(length(scenario_numbers), length(analysis_numbers))) {
-    stop (simpleError("'scenario_numbers' and 'analysis_numbers' must have equal length"))
-  }
+  checkmate::assertTRUE(
+    identical(length(scenario_numbers), length(analysis_numbers)),
+    .var.name = error_len_match
+  )
+  
+  checkmate::assertCharacter(
+    load_path,
+    len         = 1,
+    any.missing = FALSE,
+    .var.name   = error_load_path
+  )
   
   ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ###
   
@@ -529,25 +559,8 @@ loadAnalyses <- function (
   
 }
 
-makeUniqueRows <- function (
-  
-  matrix
-  
-) {
-  
-  n_rows      <- nrow(matrix)
-  n_cols      <- ncol(matrix)
-  
-  unique_rows <- stats::aggregate(id ~ .,
-                                  data = cbind(id = seq_along(n_rows), matrix),
-                                  FUN  = length)
-  
-  return (unique_rows[, seq_len(n_cols)])
-  
-}
-
 mapUniqueTrials <- function (
-  
+    
   scenario_list,
   method_quantiles_list,
   trials_unique_calc,
@@ -723,7 +736,7 @@ mapUniqueTrials <- function (
 #' Vol. 124. No. 125.10. 2003.
 #' @export
 performAnalyses <- function (
-  
+    
   scenario_list,
   evidence_levels       = c(0.025, 0.05, 0.5, 0.8, 0.9, 0.95, 0.975),
   
@@ -741,25 +754,38 @@ performAnalyses <- function (
 ) {
   
   error_scenario_list <-
-    simpleError("Please provide an object of class scenario_list for the argument 'scenario_list'")
+    "Please provide an object of class scenario_list for the argument 'scenario_list'"
   error_evidence_levels <-
-    simpleError("Please provide a vector of numerics in (0, 1) for the argument 'evidence_levels'")
+    "Please provide a vector of numerics in (0, 1) for the argument 'evidence_levels'"
   error_method_names <-
-    simpleError(paste("Please provide a (vector of) strings for the argument 'method_names'\n",
-                      "Must be one of 'berry', 'exnex', 'exnex_adj', 'pooled', 'stratified'"))
+    paste("Please provide a (vector of) strings for the argument 'method_names'\n",
+          "Must be one of 'berry', 'exnex', 'exnex_adj', 'pooled', 'stratified'")
   error_target_rates <-
-    simpleError(paste("Please provide either 'NULL' or a vector of numerics in (0, 1)",
-                      "for the argument 'target_rates'"))
+    paste("Please provide either 'NULL' or a vector of numerics in (0, 1)",
+          "for the argument 'target_rates'")
   error_prior_parameters_list <-
-    simpleError("Please provide either 'NULL' or an object of class 'prior_parameters_list'")
+    "Please provide either 'NULL' or an object of class 'prior_parameters_list'"
   error_calc_differences <-
-    simpleError(paste("Please provide either 'NULL' or a matrix of integers with ncol = 2.",
-                      "The values of the integers must be less than or equal to the number",
-                      "of cohorts"))
+    paste("Please provide either 'NULL' or a matrix of integers with ncol = 2.",
+          "The values of the integers must be less than or equal to the number",
+          "of cohorts")
   error_n_mcmc_iterations <-
-    simpleError("Please provide a positive integer for the argument 'n_mcmc_iterations'")
+    "Please provide a positive integer for the argument 'n_mcmc_iterations'"
   error_verbose <-
-    simpleError("Please provide a logical for the argument 'verbose'")
+    "Please provide a logical for the argument 'verbose'"
+  
+  error_need_target_rates_for_methods <-
+    "Please provide 'target_rates' when using the methods 'berry' and/or 'exnex_adj'"
+  error_need_one_of_prior_or_target <-
+    "Please provide at least one of 'prior_parameters_list' or 'target_rates'"
+  error_target_length <-
+    "The length of 'target_rates' does not match the number of cohorts"
+  error_prior_methods_mismatch <-
+    paste("Not all specified methods in 'method_names'",
+          "have prior parameters specified in 'prior_parameters_list'")
+  error_prior_cohorts_mismatch <-
+    paste("The number of cohorts specified in 'prior_parameters_list' does not match",
+          "the number of cohorts specified in 'scenario_list'")
   
   warning_n_cores <- "The argument 'n_cores' is deprecated as of version 0.9.3."
   warning_seed    <- "The argument 'seed' is deprecated as of version 0.9.3."
@@ -767,80 +793,171 @@ performAnalyses <- function (
   if (!missing(n_cores)) warning(warning_n_cores)
   if (!missing(seed))    warning(warning_seed)
   
-  if (missing(scenario_list)) stop (error_scenario_list)
+  # scenario_list must be supplied and have the correct class
+  checkmate::assertClass(
+    scenario_list,
+    "scenario_list",
+    .var.name = error_scenario_list
+  )
   
-  method_names <- tryCatch({
-    
+  # evidence_levels: numeric, all in (0, 1)
+  checkmate::assertNumeric(
+    evidence_levels,
+    any.missing = FALSE,
+    .var.name   = error_evidence_levels
+  )
+  checkmate::assertTRUE(
+    all(evidence_levels > 0 & evidence_levels < 1),
+    .var.name = error_evidence_levels
+  )
+  
+  # method_names: character and must be one of the allowed methods
+  checkmate::assertCharacter(
+    method_names,
+    any.missing = FALSE,
+    min.len     = 1,
+    .var.name   = error_method_names
+  )
+  method_names <- tryCatch(
     match.arg(
       method_names,
-      choices    = c('berry', 'exnex', 'exnex_adj', 'pooled', 'stratified'),
-      several.ok = TRUE)
-    
-  }, error = function (e) e)
+      choices    = c("berry", "exnex", "exnex_adj", "pooled", "stratified"),
+      several.ok = TRUE
+    ),
+    error = function(e) {
+      stop(error_method_names, call. = FALSE)
+    }
+  )
   
-  if (!is.scenario_list(scenario_list))                   stop (error_scenario_list)
-  if (!is.numeric.in.zero.one(evidence_levels))           stop (error_evidence_levels)
-  if (inherits(method_names, "error"))                    stop (error_method_names)
-  if (!is.null(target_rates) &&
-      !is.numeric.in.zero.one(target_rates))              stop (error_target_rates)
-  if (!is.null(prior_parameters_list) &&
-      !is.prior_parameters_list(prior_parameters_list))   stop (prior_parameters_list)
+  # target_rates: either NULL or numeric in (0, 1)
+  if (!is.null(target_rates)) {
+    checkmate::assertNumeric(
+      target_rates,
+      any.missing = FALSE,
+      .var.name   = error_target_rates
+    )
+    checkmate::assertTRUE(
+      all(target_rates > 0 & target_rates < 1),
+      .var.name = error_target_rates
+    )
+  }
+  
+  # prior_parameters_list: either NULL or object with class 'prior_parameters_list'
+  if (!is.null(prior_parameters_list)) {
+    checkmate::assertClass(
+      prior_parameters_list,
+      "prior_parameters_list",
+      .var.name = error_prior_parameters_list
+    )
+  }
+  
   
   if (is.null(target_rates)) {
-    if (any(c("berry", "exnex_adj") %in% method_names)) stop (simpleError(
-      "Please provide 'target_rates' when using the methods 'berry' and/or 'exnex_adj'"))
-    if (is.null(prior_parameters_list)) stop (simpleError(
-      "Please provide at least one of 'prior_parameters_list' or 'target_rates'"))
+    
+    # If target_rates are missing, berry and exnex_adj are not allowed
+    checkmate::assertTRUE(
+      !any(c("berry", "exnex_adj") %in% method_names),
+      .var.name = error_need_target_rates_for_methods
+    )
+    
+    # Need at least one of prior_parameters_list or target_rates
+    checkmate::assertTRUE(
+      !is.null(prior_parameters_list),
+      .var.name = error_need_one_of_prior_or_target
+    )
+    
   } else {
-    if (!identical(length(target_rates), ncol(scenario_list[[1]]$n_subjects))) stop (simpleError(
-      "The length of 'target_rates' does not match the number of cohorts"))
+    # If target_rates is present, its length must match the number of cohorts
+    n_coh <- ncol(scenario_list[[1]]$n_subjects)
+    checkmate::assertTRUE(
+      identical(length(target_rates), n_coh),
+      .var.name = error_target_length
+    )
   }
+  
   
   if (!is.null(prior_parameters_list)) {
-    if (!all(method_names %in% names(prior_parameters_list))) stop (simpleError(
-      paste("Not all specified methods in 'method_names'",
-            "have prior parameters specified in 'prior_parameters_list'")))
-    if (any(sapply(names(prior_parameters_list), function (name) {
-      if (name %in% c('exnex', 'exnex_adj', 'stratified')) {
-        !identical(max(sapply(prior_parameters_list[[name]], length)),
-                   ncol(scenario_list[[1]]$n_subjects))
-      } else FALSE
-    }))) stop (simpleError(paste(
-      "The number of cohorts specified in 'prior_parameters_list' does not match",
-      "the number of cohorts specified in 'scenario_list'")))
+    
+    # All methods used must have entries in prior_parameters_list
+    checkmate::assertTRUE(
+      all(method_names %in% names(prior_parameters_list)),
+      .var.name = error_prior_methods_mismatch
+    )
+    
+    # For exnex / exnex_adj / stratified, per-cohort prior lengths must
+    # match the number of cohorts in scenario_list
+    n_coh <- ncol(scenario_list[[1]]$n_subjects)
+    
+    inconsistent_cohorts <- any(
+      sapply(
+        intersect(names(prior_parameters_list),
+                  c("exnex", "exnex_adj", "stratified")),
+        function(name) {
+          max(sapply(prior_parameters_list[[name]], length)) != n_coh
+        }
+      )
+    )
+    
+    checkmate::assertFALSE(
+      inconsistent_cohorts,
+      .var.name = error_prior_cohorts_mismatch
+    )
   }
   
-  n_cohorts_min <- min(sapply(scenario_list, function (x) {
-    ncol(x$n_responders)
-  }))
-  if (!is.null(calc_differences) && (
-    !is.numeric(calc_differences) ||
-    !(identical(length(calc_differences), 2L) ||
-      identical(ncol(calc_differences), 2L)) ||
-    !is.positive.wholenumber(calc_differences) ||
-    max(calc_differences) > n_cohorts_min))            stop (error_calc_differences)
-  rm (n_cohorts_min)
+  n_cohorts_min <- min(sapply(scenario_list, function(x) ncol(x$n_responders)))
   
-  ## check whether n_mcmc_iterations is present in global environment
-  if ("n_mcmc_iterations" %in% ls(envir = .GlobalEnv) & missing(n_mcmc_iterations)) {
+  if (!is.null(calc_differences)) {
+    
+    checkmate::assertNumeric(
+      calc_differences,
+      any.missing = FALSE,
+      .var.name   = error_calc_differences
+    )
+    
+    is_len2   <- identical(length(calc_differences), 2L)
+    has_2cols <- !is.null(dim(calc_differences)) &&
+      identical(ncol(calc_differences), 2L)
+    
+    checkmate::assertTRUE(
+      is_len2 || has_2cols,
+      .var.name = error_calc_differences
+    )
+    
+    checkmate::assertIntegerish(
+      calc_differences,
+      lower       = 1,
+      any.missing = FALSE,
+      .var.name   = error_calc_differences
+    )
+    
+    checkmate::assertTRUE(
+      max(calc_differences) <= n_cohorts_min,
+      .var.name = error_calc_differences
+    )
+  }
+  rm(n_cohorts_min)
+  
+  # If n_mcmc_iterations exists in .GlobalEnv and argument is missing, reuse it
+  if ("n_mcmc_iterations" %in% ls(envir = .GlobalEnv) && missing(n_mcmc_iterations)) {
     n_mcmc_iterations <- get("n_mcmc_iterations", envir = .GlobalEnv)
   }
   
-  if (!is.single.positive.wholenumber(n_mcmc_iterations)) stop (error_n_mcmc_iterations)
-  if (!is.logical(verbose))                               stop (error_verbose)
+  checkmate::assertInt(
+    n_mcmc_iterations,
+    lower     = 1,
+    .var.name = error_n_mcmc_iterations
+  )
   
-  ## check for parallel backend
-  "%dopar%" <- foreach::"%dopar%"
-  if(!foreach::getDoParRegistered()) {
-    
-    message("\nCaution: No parallel backend detected for the 'foreach' framework.",
-            " For execution in parallel, register a parallel backend, e.g. with:\n",
-            "   doFuture::registerDoFuture()\n",
-            "   future::plan(future::multisession)\n")
-    
-    tt <- suppressWarnings(foreach::foreach(k = 1:2) %dopar% {k^k^k})
-    rm(tt)
-    
+  checkmate::assertLogical(
+    verbose,
+    len         = 1L,
+    any.missing = FALSE,
+    .var.name   = error_verbose
+  )
+  
+  # Only need a parallel backend if there is at least one method that is not pooled/stratified
+  if (!all(method_names %in% c("stratified", "pooled"))) {
+    checkForParallelBackend()
   }
   
   ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ###
@@ -860,16 +977,8 @@ performAnalyses <- function (
   scenario_numbers <- sapply(scenario_list, function (x) x$scenario_number)
   
   ## get unique trials over all scenarios
-  all_scenarios_n_responders <- do.call(rbind, lapply(scenario_list, function (x) x$n_responders))
-  all_scenarios_n_subjects   <- do.call(rbind, lapply(scenario_list, function (x) x$n_subjects))
-  all_scenarios_overall_gos  <- do.call(rbind, lapply(scenario_list, function (x) 
-    x$previous_analyses$go_decisions))[, 1]
-  
-  n_cohorts     <- ncol(all_scenarios_n_responders)
-  
-  trials_unique <- makeUniqueRows(cbind(all_scenarios_n_responders,
-                                        all_scenarios_n_subjects,
-                                        go_flag = all_scenarios_overall_gos))
+  trials_unique <- getUniqueTrials(scenario_list)
+  n_cohorts     <- (ncol(trials_unique) - 1L) / 2
   
   ## analyze only unique trials that have not been previously analyzed
   applicable_previous_trials <- applicablePreviousTrials(
@@ -894,10 +1003,8 @@ performAnalyses <- function (
   ## message to user
   if (verbose) {
     
-    scenarios_message <- paste0(as.character(scenario_numbers), sep = ", ", collapse = "")
-    message("         Analyzing Scenario", ifelse(length(scenario_numbers) == 1, "", "s")," ",
-            substr(scenarios_message, 1, nchar(scenarios_message) - 2),
-            " (", nrow(n_responders), " unique", ifelse(applicable_previous_trials, " updated ", " "),
+    message("         Analyzing ", length(scenario_numbers) ," scenario", ifelse(length(scenario_numbers) == 1, "", "s")," ",
+            "(", nrow(n_responders), " unique", ifelse(applicable_previous_trials, " updated ", " "),
             "trial realization", ifelse(nrow(trials_unique) == 1, "", "s"),")")
     
   }
@@ -936,7 +1043,6 @@ performAnalyses <- function (
     method_quantiles_list[[method_names[n]]] <- getPostQuantiles(
       method_name       = method_names[n],
       quantiles         = quantiles,
-      post_mean         = TRUE,
       scenario_data     = list(n_subjects   = n_subjects,
                                n_responders = n_responders),
       calc_differences  = calc_differences,
@@ -959,7 +1065,7 @@ performAnalyses <- function (
   ## message to user
   if (verbose) {
     start_time  <- Sys.time()
-    message("         Processing Scenarios ...")
+    message("         Processing scenarios ...")
   }
   
   ## Process scenarios
@@ -999,53 +1105,90 @@ performAnalyses <- function (
   
 }
 
+## based on R2jags::jags
+## stripped down to improve performance
+performJags <- function (
+    
+  data,
+  parameters_to_save,
+  model_file, 
+  n_chains = 2,
+  n_iter   = 1e4,
+  n_burnin = floor(n_iter/3)
+  
+) {
+  
+  n_adapt <- ifelse(n_burnin > 0, n_burnin, 100)
+  
+  inits <- vector("list", n_chains)
+  for (i in 1:n_chains) {
+    inits[[i]]$.RNG.name <- "base::Wichmann-Hill"
+    inits[[i]]$.RNG.seed <- stats::runif(1, 0, 2^31)
+  }
+  
+  j_model <- rjags::jags.model(file     = model_file,
+                               data     = data,
+                               inits    = inits, 
+                               n.chains = n_chains,
+                               n.adapt  = 0,
+                               quiet    = TRUE)
+  
+  rjags::adapt(object         = j_model,
+               n.iter         = n_adapt,
+               progress.bar   = "none",
+               end.adaptation = TRUE)
+  
+  samples <- rjags::coda.samples(model          = j_model,
+                                 variable.names = parameters_to_save, 
+                                 n.iter         = n_iter - n_burnin,
+                                 thin           = 1, 
+                                 progress.bar   = "none")
+  
+  return(do.call(rbind, samples))
+  
+}
+
 posteriors2Quantiles <- function (
-  
+    
   quantiles,
-  posteriors,
-  
-  post_mean = TRUE
+  posteriors
   
 ) {
   
   posterior_quantiles <- apply(posteriors, 2, function (x) stats::quantile(x, probs = quantiles))
   
-  if (post_mean) {
-    
-    posterior_mean      <- apply(posteriors, 2, mean)
-    posterior_sd        <- apply(posteriors, 2, stats::sd)
-    posterior_quantiles <- rbind(posterior_quantiles,
-                                 Mean = posterior_mean,
-                                 SD   = posterior_sd)
-    
-  }
+  posterior_mean      <- apply(posteriors, 2, mean)
+  posterior_sd        <- apply(posteriors, 2, stats::sd)
+  posterior_quantiles <- rbind(posterior_quantiles,
+                               Mean = posterior_mean,
+                               SD   = posterior_sd)
   
   return (posterior_quantiles)
   
 }
 
 prepareAnalysis <- function (
-
+    
   method_name,
-
+  
   prior_parameters = NULL,
   target_rates     = NULL
-
+  
 ) {
-
+  
   if (method_name == "berry") {
-
+    
     j_data <- list(mean_mu       = prior_parameters$mu_mean,
                    precision_mu  = prior_parameters$mu_sd^-2,
                    precision_tau = prior_parameters$tau_scale^-2,
                    p_t           = target_rates,
                    J             = length(target_rates))
-
+    
     # j_model_file <- writeTempModel(method_name = "berry")
     j_model_file <- getModelFile(method_name = "berry")
-
+    
     j_parameters <- c("p", "mu", "tau")
-
+    
   } else if (method_name == "exnex" | method_name == "exnex_adj") {
     # Nexch: number of exchangeable mixture components
     # Nmix:  number of mixture components
@@ -1058,77 +1201,128 @@ prepareAnalysis <- function (
                                       length(prior_parameters$mu_mean)), # rep(..., Nexch)
                    nex_mean     = prior_parameters$mu_j,
                    nex_prec     = prior_parameters$tau_j^-2)
-
+    
     if (identical(length(prior_parameters$w_j), 1L)) {
       j_data$pMix <- c(prior_parameters$w_j, 1 - prior_parameters$w_j)
     } else {
       j_data$pMix <- prior_parameters$w_j
     }
-
+    
     if (method_name == "exnex") {
-
+      
       j_model_file    <- getModelFile(method_name = "exnex")
-
+      
     } else {
-
+      
       j_data$p_target <- target_rates
       j_model_file    <- getModelFile(method_name = "exnex_adj")
-
+      
     }
-
+    
     j_parameters <- c("p", "mu", "tau", "exch")
-
+    
   } else if (method_name == "stratified" | method_name == "pooled") {
-
+    
     ## For methods "stratified" and "pooled" no MCMC simulations are necessary,
     ## as the posterior response rates of the cohorts follow known beta distributions.
-
+    
     j_model_file <- "dummy path to JAGS model"
     j_parameters <- "dummy JAGS parameters"
     j_data       <- prior_parameters
-
+    
   } else {
-
+    
     stop ("method_name must be one of berry, exnex, exnex_adj, stratified, pooled")
-
+    
   }
-
+  
   return (list(j_parameters = j_parameters,
                j_model_file = j_model_file,
                j_data       = j_data))
 }
 
+#' @export
+print.analysis_list <- function (x, digits = 2, ...) {
+  
+  n_scenarios    <- length(x)
+  scenario_names <- names(x)
+  
+  n_methods      <- length(x[[1]]$quantiles_list)
+  method_names   <- names(x[[1]]$quantiles_list)
+  
+  estimates          <- getEstimates(x)
+  n_mcmc_interations <- x[[1]]$analysis_parameters$n_mcmc_iterations
+  
+  evidence_levels <- sort(1 - x[[1]]$analysis_parameters$quantiles)
+  
+  cat("analysis_list of ", n_scenarios, " scenario", ifelse(n_scenarios == 1, "", "s"),
+      " with ", n_methods, " method", ifelse(n_methods == 1, "", "s"),"\n\n", sep = "")
+  
+  for (n in seq_along(scenario_names)) {
+    
+    if (n_scenarios == 1L) {
+      
+      expr <- quote(t(y[, 1:2]))
+      
+    } else {
+      
+      expr <- quote(t(y[[n]][, 1:2]))
+      
+    }
+    
+    mat_out <- do.call(rbind, lapply(estimates, function (y) eval(expr)))
+    
+    rownames(mat_out) <-  paste0(
+      c("    - ", "      "),
+      c(rbind(
+        paste0(
+          firstUpper(method_names),
+          sapply(method_names, function (y) {
+            getBlankString(max(nchar(method_names)) - nchar(y) + 1)
+          })),
+        rep(getBlankString(max(nchar(method_names)) + 3),
+            length = length(method_names))
+      )),
+      rownames(mat_out))
+    
+    cat("  -", scenario_names[n], "\n")
+    print(round(mat_out, digits = digits))
+    
+    cat("\n")
+    
+  }
+  
+  cat("  -", n_mcmc_interations, "MCMC iterationns per BHM method\n")
+  cat("  - Available evidence levels:", evidence_levels, "\n")
+  
+}
+
 qbetaDiff <- function (
-
+    
   quantiles,
-  post_mean,
-
+  
   x_1_shape1,
   x_1_shape2,
-
+  
   x_2_shape1,
   x_2_shape2,
-
+  
   n_mcmc = 1e6
-
+  
 ) {
-
+  
   sample_1   <- stats::rbeta(n_mcmc, shape1 = x_1_shape1, shape2 = x_1_shape2)
   sample_2   <- stats::rbeta(n_mcmc, shape1 = x_2_shape1, shape2 = x_2_shape2)
   difference <- sample_1 - sample_2
-
+  
   quantiles_diff <- stats::quantile(difference, probs = quantiles)
-
-  if (post_mean) {
-
-    mean_diff      <- mean(difference)
-    sd_diff        <- stats::sd(difference)
-    quantiles_diff <- c(quantiles_diff, mean_diff, sd_diff)
-
-  }
-
+  
+  mean_diff      <- mean(difference)
+  sd_diff        <- stats::sd(difference)
+  quantiles_diff <- c(quantiles_diff, mean_diff, sd_diff)
+  
   return (quantiles_diff)
-
+  
 }
 
 
@@ -1166,57 +1360,75 @@ qbetaDiff <- function (
 #' @author Stephan Wojciekowski
 #' @export
 saveAnalyses <- function (
-
+    
   analyses_list,
   save_path        = tempdir(),
   analysis_numbers = NULL
-
+  
 ) {
-
-  error_analyses_list <- simpleError(
-    "Please provide an object of class analysis_list for the argument 'analyses_list'")
-  error_save_path     <- simpleError(
-    "Please provide a string containing a path for the argument 'save_path'")
-  error_analysis_numbers <- simpleError(paste(
+  
+  error_analyses_list <- 
+    "Please provide an object of class analysis_list for the argument 'analyses_list'"
+  error_save_path     <- 
+    "Please provide a string containing a path for the argument 'save_path'"
+  error_analysis_numbers <- paste(
     "Please provide a vector of positive integers for the argument 'analysis_numbers'",
-    "with length equal to the length of 'analyses_list'"))
-
-  if (missing(analyses_list))                                     stop (error_analyses_list)
-
-  if (!is.analysis_list(analyses_list))                           stop (error_analyses_list)
-  if (!is.character(save_path) || length(save_path) > 1)          stop (error_save_path)
-  if (!is.null(analysis_numbers) && (
-    any(!is.positive.wholenumber(analysis_numbers)) ||
-    !identical(length(analyses_list), length(analysis_numbers)))) stop(error_analysis_numbers)
-
+    "with length equal to the length of 'analyses_list'"
+  )
+  
+  checkmate::assertClass(
+    analyses_list,
+    "analysis_list",
+    .var.name = error_analyses_list
+  )
+  checkmate::assertCharacter(
+    save_path,
+    len         = 1,
+    any.missing = FALSE,
+    .var.name   = error_save_path
+  )
+  
+  if (!is.null(analysis_numbers)) {
+    checkmate::assertIntegerish(
+      analysis_numbers, 
+      lower       = 1, 
+      any.missing = FALSE,
+      .var.name   = error_analysis_numbers
+    )
+    
+    checkmate::assertTRUE(
+      identical(length(analyses_list), length(analysis_numbers)),
+      .var.name = error_analysis_numbers
+    )
+  }
+  
   ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ###
-
+  
   scenario_numbers <- sapply(analyses_list, function (x) x$scenario_data$scenario_number)
-
+  
   if (is.null(analysis_numbers)) {
     analysis_numbers <- rep(0, length(analyses_list))
   }
-
+  
   for (s in seq_along(analyses_list)) {
-
+    
     ## Get analysis number
     if (identical(analysis_numbers[s], 0)) {
-
+      
       analysis_numbers[s] <- sum(grepl(paste0("analysis_data_", scenario_numbers[s], "_"),
                                        list.files(save_path))) + 1L
-
+      
     }
-
+    
     ## Save the analysis
     file_name <- paste0("analysis_data_", scenario_numbers[s], "_", analysis_numbers[s],".rds")
     saveRDS(analyses_list[[s]], file = file.path(save_path, file_name),
             compress = "xz")
-
+    
   }
-
+  
   return (list(scenario_numbers = scenario_numbers,
                analysis_numbers = analysis_numbers,
                path             = save_path))
-
+  
 }
-
