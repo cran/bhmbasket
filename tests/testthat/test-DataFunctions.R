@@ -57,26 +57,26 @@ test_that("simulateScenarios has correct structure", {
   rr_3 <- c(0.9, 0.9, 1)
   rr_4 <- c(0.9, 0.9, 0)
   rr_5 <- c(0.9, 0.9, 1.1)
-  
+
   scenarios <- simulateScenarios(
     n_subjects_list     = list(n_subjects, n_subjects, n_subjects, n_subjects),
     response_rates_list = list(rr_1, rr_2, rr_3, rr_4),
     scenario_numbers    = c(1, 2, 3, 4),
     n_trials            = 25
   )
-  
+
   expect_s3_class(scenarios, "scenario_list")
   expect_equal(names(scenarios), paste0("scenario_", 1:4))
-  
+
   s1 <- scenarios[[1]]
   s3 <- scenarios[[3]]
-  
+
   expect_true(is.matrix(s1$n_subjects))
   expect_true(is.matrix(s1$response_rates))
   expect_equal(s1$n_trials, 25)
-  
+
   hist_cols <- which(rr_3 <= 0 | rr_3 >= 1)
-  
+
   expect_true(
     all(apply(
       s3$n_responders[, hist_cols, drop = FALSE],
@@ -84,25 +84,25 @@ test_that("simulateScenarios has correct structure", {
       function(x) length(unique(x)) == 1
     ))
   )
-  
+
   expect_equal(ncol(s1$n_subjects), length(n_subjects))
   expect_equal(ncol(s1$response_rates), length(n_subjects))
-  
+
   expect_equal(
     colnames(s1$n_subjects),
     paste0("n_", seq_len(length(n_subjects)))
   )
-  
+
   expect_equal(
     colnames(s1$n_responders),
     paste0("r_", seq_len(length(n_subjects)))
   )
-  
+
   expect_equal(
     colnames(s1$response_rates),
     paste0("rr_", seq_len(length(n_subjects)))
   )
-  
+
   expect_error(
     simulateScenarios(
       n_subjects_list     = list(n_subjects),
@@ -137,19 +137,19 @@ test_that("simulateScenarios has no mismatch and gives appropriate error message
   n_subjects <- list(c(10, 20, 30))
   rr_1       <- c(0.1, 0.1, 0.1)
   rr_ok      <- c(0.2, 0.3, 0.4)
-  
+
   expect_true(checkmate::test_int(5L, lower = 1))
-  
+
   expect_error(
     simulateScenarios(n_subjects_list = n_subjects),
     "response_rates_list"
   )
-  
+
   expect_error(
     simulateScenarios(response_rates_list = list(rr_1)),
     "n_subjects_list"
   )
-  
+
   expect_s3_class(
     simulateScenarios(
       n_subjects_list     = c(10, 20, 30),
@@ -158,7 +158,7 @@ test_that("simulateScenarios has no mismatch and gives appropriate error message
     ),
     "scenario_list"
   )
-  
+
   invalid_trials <- list(
     zero     = 0L,
     negative = -1L,
@@ -169,7 +169,7 @@ test_that("simulateScenarios has no mismatch and gives appropriate error message
     ninf     = -Inf,
     length2  = c(2L, 3L)
   )
-  
+
   for (case in invalid_trials) {
     expect_error(
       simulateScenarios(
@@ -181,7 +181,7 @@ test_that("simulateScenarios has no mismatch and gives appropriate error message
       info = paste("invalid n_trials case:", paste(case, collapse = ","))
     )
   }
-  
+
   expect_error(
     simulateScenarios(
       n_subjects_list     = list(c(10, 20, 30)),
@@ -189,7 +189,7 @@ test_that("simulateScenarios has no mismatch and gives appropriate error message
     ),
     "same length"
   )
-  
+
   expect_error(
     simulateScenarios(
       n_subjects_list     = list(c(10, 20, 30), c(10, 20, 30)),
@@ -198,7 +198,7 @@ test_that("simulateScenarios has no mismatch and gives appropriate error message
     ),
     "scenario_numbers"
   )
-  
+
   expect_error(
     simulateScenarios(
       n_subjects_list     = list(10),
@@ -207,7 +207,7 @@ test_that("simulateScenarios has no mismatch and gives appropriate error message
     ),
     "at least 2 cohorts"
   )
-  
+
   expect_error(
     simulateScenarios(
       n_subjects_list     = list(c(10, 20), c(10, 20)),
@@ -216,7 +216,7 @@ test_that("simulateScenarios has no mismatch and gives appropriate error message
     ),
     "same number of cohorts"
   )
-  
+
   expect_error(
     simulateScenarios(
       n_subjects_list     = list(c(10, 20), 10),
@@ -225,9 +225,9 @@ test_that("simulateScenarios has no mismatch and gives appropriate error message
     ),
     "same number of cohorts"
   )
-  
+
   old <- if (exists("n_trials", .GlobalEnv)) get("n_trials", .GlobalEnv) else NULL
-  
+
   on.exit({
     if (is.null(old)) {
       rm(list = "n_trials", envir = .GlobalEnv)
@@ -235,14 +235,14 @@ test_that("simulateScenarios has no mismatch and gives appropriate error message
       assign("n_trials", old, .GlobalEnv)
     }
   }, add = TRUE)
-  
+
   assign("n_trials", 7L, envir = .GlobalEnv)
-  
+
   out <- simulateScenarios(
     n_subjects_list     = list(c(10, 20, 30)),
     response_rates_list = list(rr_ok)
   )
-  
+
   expect_equal(out[[1]]$n_trials, 7L)
 })
 
@@ -271,18 +271,18 @@ test_that("saveScenarios saves files correctly", {
   }
   scenario_list <- list(mock_scenario(1), mock_scenario(2))
   class(scenario_list) <- "scenario_list"
-  
+
   temp_dir <- tempfile()
   dir.create(temp_dir)
-  
+
   result <- saveScenarios(scenario_list, save_path = temp_dir)
-  
+
   expect_true(file.exists(file.path(temp_dir, "scenario_data_1.rds")))
   expect_true(file.exists(file.path(temp_dir, "scenario_data_2.rds")))
-  
+
   expect_equal(result$scenario_numbers, c(1, 2))
   expect_equal(result$path, temp_dir)
-  
+
   unlink(temp_dir, recursive = TRUE)
 })
 
@@ -303,11 +303,11 @@ test_that("saveScenarios creates directory when save_path does not exist", {
   temp_dir <- tempfile()
   expect_false(dir.exists(temp_dir))
   on.exit(unlink(temp_dir, recursive = TRUE), add = TRUE)
-  
+
   sl <- structure(list(list(scenario_number = 1)), class = "scenario_list")
-  
+
   res <- saveScenarios(sl, save_path = temp_dir)
-  
+
   expect_true(dir.exists(temp_dir))
   expect_equal(res$path, temp_dir)
 })
@@ -330,14 +330,14 @@ test_that("print.scenario_list header is correct and shows cohort count", {
   n_subjects <- c(5, 6)
   rr1 <- c(0.1, 0.2)
   rr2 <- c(0.3, 0.4)
-  
+
   scenarios <- simulateScenarios(
     n_subjects_list     = list(n_subjects, n_subjects),
     response_rates_list = list(rr1, rr2),
     scenario_numbers    = c(1, 2),
     n_trials            = 3
   )
-  
+
   expect_output(print(scenarios), "scenario_list of 2 scenarios with 2 cohorts")
   expect_output(print(scenarios), "  - scenario_1", fixed = FALSE)
   expect_output(print(scenarios), "  - scenario_2", fixed = FALSE)
@@ -359,14 +359,14 @@ test_that("print.scenario_list header is correct and shows cohort count", {
 test_that("print.scenario_list prints table row labels", {
   n_subjects <- c(7, 8, 9)
   rr <- c(0.2, 0.3, 0.4)
-  
+
   scenarios <- simulateScenarios(
     n_subjects_list     = list(n_subjects),
     response_rates_list = list(rr),
     scenario_numbers    = 1,
     n_trials            = 2
   )
-  
+
   expect_output(print(scenarios), "true response rates:")
   expect_output(print(scenarios), "average number of subjects:")
 })
@@ -386,14 +386,14 @@ test_that("print.scenario_list prints table row labels", {
 test_that("print.scenario_list uses cohort column names c_1, c_2, ...", {
   n_subjects <- c(7, 8, 9)
   rr <- c(0.2, 0.3, 0.4)
-  
+
   scenarios <- simulateScenarios(
     n_subjects_list     = list(n_subjects),
     response_rates_list = list(rr),
     scenario_numbers    = 1,
     n_trials            = 2
   )
-  
+
   expect_output(print(scenarios), "\\bc_1\\b")
   expect_output(print(scenarios), "\\bc_2\\b")
   expect_output(print(scenarios), "\\bc_3\\b")
@@ -415,14 +415,14 @@ test_that("print.scenario_list uses cohort column names c_1, c_2, ...", {
 test_that("print.scenario_list prints footer lines with realizations info", {
   n_subjects <- c(10, 10)
   rr <- c(0.1, 0.2)
-  
+
   scenarios <- simulateScenarios(
     n_subjects_list     = list(n_subjects),
     response_rates_list = list(rr),
     scenario_numbers    = 1,
     n_trials            = 5
   )
-  
+
   expect_output(print(scenarios), "5 trial realizations per scenario")
   expect_output(print(scenarios), "unique trial realizations overall")
 })
@@ -444,21 +444,21 @@ test_that("print.scenario_list prints footer lines with realizations info", {
 test_that("loadScenarios loads saved scenarios and returns proper class/names", {
   temp_dir <- tempfile()
   dir.create(temp_dir)
-  
+
   scenario_list_to_save <- simulateScenarios(
     n_subjects_list     = list(c(10, 20, 30), c(10, 20, 30)),
     response_rates_list = list(c(0.1, 0.2, 0.3), c(0.5, 0.6, 0.7)),
     scenario_numbers    = c(1, 2),
     n_trials            = 5
   )
-  
+
   saveScenarios(scenario_list_to_save, save_path = temp_dir)
-  
+
   loaded <- loadScenarios(c(1, 2), load_path = temp_dir)
-  
+
   expect_s3_class(loaded, "scenario_list")
   expect_equal(loaded, scenario_list_to_save)
-  
+
   unlink(temp_dir, recursive = TRUE, force = TRUE)
 })
 
@@ -499,11 +499,11 @@ test_that("loadScenarios points out invalid paths", {
 test_that("loadScenarios errors when files do not exist", {
   temp_dir <- tempfile()
   dir.create(temp_dir)
-  
+
   expect_error(
     suppressWarnings(loadScenarios(c(999), load_path = temp_dir))
   )
-  
+
   unlink(temp_dir, recursive = TRUE, force = TRUE)
 })
 
@@ -528,9 +528,9 @@ test_that("is.scenario_list returns TRUE for valid input and FALSE otherwise", {
   }
   valid_list <- list(mock_scenario(1), mock_scenario(2))
   class(valid_list) <- "scenario_list"
-  
+
   expect_true(is.scenario_list(valid_list))
-  
+
   expect_false(is.scenario_list(list()))
   expect_false(is.scenario_list("not a scenario list"))
   expect_false(is.scenario_list(NULL))
@@ -597,7 +597,7 @@ test_that("createTrial errors with invalid input", {
     createTrial(n_subjects = c(10, NA), n_responders = c(5, 15)),
     "n_subjects"
   )
-  
+
   expect_error(
     createTrial(n_subjects = c(10, 20), n_responders = c(5.5, 15)),
     "n_responders"
@@ -707,7 +707,7 @@ test_that("Error for invalid method_name", {
 test_that("Error when method_name is NULL and multiple methods are present", {
   decisions$scenario_1$analysis_data$analysis_parameters$method_names <- c("berry", "exnex")
   decisions$scenario_1$decisions_list <- list(berry = data.frame(), exnex = data.frame())
-  
+
   expect_error(
     continueRecruitment(
       n_subjects_add_list = list(c(10, 10)),
@@ -754,7 +754,7 @@ test_that("Error is thrown if n_subjects_add_list and decisions_list lengths do 
 test_that("Error when selected method_name not analyzed in scenario", {
   decisions$scenario_1$analysis_data$analysis_parameters$method_names <- "berry"
   decisions$scenario_1$decisions_list <- list(berry = data.frame())
-  
+
   expect_error(
     continueRecruitment(
       n_subjects_add_list = list(c(10, 10)),
@@ -788,7 +788,7 @@ test_that("Error when response rate <=0 or >=1", {
   decisions$scenario_1$scenario_data$n_subjects <-
     matrix(c(0, 1), nrow = 1, dimnames = list(NULL, c("rr_hist1", "rr_hist2")))
   decisions$scenario_1$scenario_data$scenario_number <- 1
-  
+
   expect_error(
     continueRecruitment(
       n_subjects_add_list = list(c(10, 10)),
@@ -819,7 +819,7 @@ test_that("Error when n_subjects_add length does not match recruiting cohorts", 
   decisions$scenario_1$scenario_data$response_rates <-
     matrix(c(0.3, 0.4, 1), nrow = 1,
            dimnames = list(NULL, c("rr_A", "rr_B", "rr_hist")))
-  
+
   expect_error(
     continueRecruitment(
       n_subjects_add_list = list(c(10)),
@@ -851,19 +851,19 @@ test_that("Only overall==TRUE rows are updated", {
   decisions$scenario_1$scenario_data$response_rates <-
     matrix(c(0.5, 1), nrow = 1,
            dimnames = list(NULL, c("rr_A", "rr_hist")))
-  
+
   decisions$scenario_1$scenario_data$n_subjects <-
     matrix(c(0, 1), nrow = 1,
            dimnames = list(NULL, c("rr_A", "rr_hist")))
-  
+
   decisions$scenario_1$scenario_data$n_responders <-
     matrix(c(0, 1), nrow = 1,
            dimnames = list(NULL, c("rr_A", "rr_hist")))
-  
+
   decisions$scenario_1$decisions_list <-
     list(berry = data.frame(decision_1 = TRUE, decision_2 = TRUE, overall = TRUE))
   decisions$scenario_1$analysis_data$analysis_parameters$method_names <- "berry"
-  
+
   testthat::with_mocked_bindings(
     getScenario = function(n_subjects, response_rates, cohort_names, n_trials) {
       list(
@@ -876,7 +876,7 @@ test_that("Only overall==TRUE rows are updated", {
         decisions_list      = decisions,
         method_name         = "berry"
       )
-      
+
       expect_equal(unname(out$scenario_1$n_subjects[, "rr_A"]), 10)
       expect_equal(unname(out$scenario_1$n_responders[, "rr_A", drop = TRUE]), 5)
       expect_equal(unname(out$scenario_1$n_subjects[, "rr_hist"]), 1)

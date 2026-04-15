@@ -9,8 +9,8 @@ saveScenarios(scenario_list, save_path = tempdir())
 \arguments{
 \item{scenario_list}{An object of class \code{scenario_list}, e.g. created with \code{simulateScenarios()}}
 
-\item{save_path}{A string providing the path for the directory in which the directory of the
-scenario should be created, Default: \code{\link[base]{tempfile}}}
+\item{save_path}{A string providing the path of the directory in which the scenario data
+should be saved, Default: \code{\link[base]{tempfile}}}
 }
 \value{
 A named list of length 2 with the scenario numbers and the \code{save_path}

@@ -1,6 +1,6 @@
 Package: bhmbasket
 Title: Bayesian Hierarchical Models for Basket Trials
-Version: 1.0.0
+Version: 1.1.0
 Authors@R: 
   c(
     person(given = 'Stephan',
@@ -34,7 +34,8 @@ URL: https://CRAN.R-project.org/package=bhmbasket,
 BugReports: https://github.com/Boehringer-Ingelheim/bhmbasket/issues
 Depends: R (>= 3.6.0)
 Imports: foreach, doRNG, rjags, checkmate
-Suggests: doFuture, future, knitr, rmarkdown, testthat (>= 3.0.0)
+Suggests: doFuture, future, knitr, rmarkdown, RBesT, testthat (>=
+        3.0.0)
 VignetteBuilder: knitr
 Encoding: UTF-8
 RoxygenNote: 7.3.2
@@ -42,9 +43,9 @@ Language: en-US
 SystemRequirements: JAGS 4.x.y (http://mcmc-jags.sourceforge.net)
 Config/testthat/edition: 3
 NeedsCompilation: no
-Packaged: 2026-02-20 17:00:15 UTC; wojcie
+Packaged: 2026-04-14 11:51:27 UTC; wojcie
 Author: Stephan Wojciekowski [aut, cre],
   Tathagata Chattopadhyay [aut]
 Maintainer: Stephan Wojciekowski <stephan.wojciekowski@boehringer-ingelheim.com>
 Repository: CRAN
-Date/Publication: 2026-02-21 06:10:56 UTC
+Date/Publication: 2026-04-15 07:20:02 UTC

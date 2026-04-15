@@ -1,3 +1,11 @@
+# bhmbasket 1.1.0
+
+### New and Altered Features
+
+* Added mixture priors and models `"exnex_mix"`, `"exnex_adj_mix"`, `"stratified_mix"`.
+
+* Minor changes in code
+
 # bhmbasket 1.0.0
 
 ### New and Altered Features

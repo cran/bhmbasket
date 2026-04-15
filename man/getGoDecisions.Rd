@@ -105,11 +105,16 @@ decisions_list <- getGoDecisions(
   analyses_list   = analyses_list,
   cohort_names    = c("p_1", "p_2", "p_3"),
   evidence_levels = c(0.5, 0.5, 0.8),
-  boundary_rules  = list(quote(c(x[1] > 0.1, x[2] < 0.5, x[3] < 0.1)),  # "berry"
-                         quote(c(x[1] > 0.2, x[2] < 0.4, x[3] < 0.2)),  # "exnex"
-                         quote(c(x[1] > 0.3, x[2] < 0.3, x[3] < 0.3)),  # "exnex_adj"
-                         quote(c(x[1] > 0.4, x[2] < 0.2, x[3] < 0.4)),  # "pooled"
-                         quote(c(x[1] > 0.5, x[2] < 0.1, x[3] < 0.5)))) # "stratified"
+  boundary_rules  = list(
+    quote(c(x[1] > 0.1,  x[2] < 0.5,  x[3] < 0.1)),   # "berry"
+    quote(c(x[1] > 0.2,  x[2] < 0.4,  x[3] < 0.2)),   # "exnex"
+    quote(c(x[1] > 0.25, x[2] < 0.35, x[3] < 0.25)),  # "exnex_adj"
+    quote(c(x[1] > 0.3,  x[2] < 0.3,  x[3] < 0.3)),   # "exnex_adj_mix"
+    quote(c(x[1] > 0.35, x[2] < 0.25, x[3] < 0.35)),  # "exnex_mix"
+    quote(c(x[1] > 0.4,  x[2] < 0.2,  x[3] < 0.4)),   # "pooled"
+    quote(c(x[1] > 0.45, x[2] < 0.15, x[3] < 0.45)),  # "stratified"
+    quote(c(x[1] > 0.5,  x[2] < 0.1,  x[3] < 0.5))    # "stratified_mix"
+  ))
 }
 \seealso{
 \code{\link[bhmbasket]{performAnalyses}}

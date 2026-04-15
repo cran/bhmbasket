@@ -14,7 +14,7 @@ getPriorParameters(
 }
 \arguments{
 \item{method_names}{A vector of strings for the names of the methods to be used.
-Available methods: \code{c("berry", "exnex", "exnex_adj", "pooled", "stratified")}}
+Available methods: \verb{c("berry", "exnex", "exnex_adj", "exnex_mix", "exnex_adj_mix", "pooled", "stratified", "stratified_mix)}}
 
 \item{target_rates}{A vector of numerics in \verb{(0, 1)} for the
 target rate of each cohort}
@@ -23,7 +23,7 @@ target rate of each cohort}
 response rate scale, Default: \code{1}}
 
 \item{tau_scale}{A numeric for the scale parameter of the Half-normal distribution of \eqn{\tau}
-in the methods \code{"berry"}, \code{"exnex"}, and \code{"exnex_adj"}, Default: \code{1}}
+in the methods \code{"berry"}, \code{"exnex"}, \verb{"exnex"_mix}, \code{"exnex_adj"} and \code{"exnex_adj_mix"}, Default: \code{1}}
 
 \item{w_j}{A numeric in \verb{(0, 1)} for the weight of the Ex component in the methods \code{"exnex"}
 and \code{"exnex_adj"}, Default: \code{0.5}}
@@ -36,7 +36,7 @@ This function provides default prior parameters for the analysis methods
 that can be used in \code{\link[bhmbasket]{performAnalyses}}.
 }
 \details{
-Regarding the default prior parameters for \code{"berry"}, \code{"exnex"}, and \code{"exnex_adj"}:
+Regarding the default prior parameters for \code{"berry"}, \code{"exnex"}, \code{"exnex_mix"}, \code{"exnex_adj"} and \code{"exnex_adj_mix"}:
 \itemize{
 \item \code{"berry"}: The mean of \eqn{\mu} is set to \code{0}.
 Its variance is calculated as proposed in "Robust exchangeability designs for early
@@ -51,6 +51,7 @@ The variance of \eqn{\mu} is calculated as proposed in "Robust exchangeability d
 phase clinical trials with multiple strata" (Neuenschwander et al. (2016))
 with regard to \code{n_worth}.
 The scale parameter of \eqn{\tau} is set to \code{tau_scale}.
+
 For the Nex components:
 The means of \eqn{\mu_j} are set to the respective target rates.
 The variances of \eqn{\tau_j} are calculated as proposed in "Robust exchangeability designs for early
@@ -64,22 +65,40 @@ The variance of \eqn{\mu} is calculated as proposed in "Robust exchangeability d
 phase clinical trials with multiple strata" (Neuenschwander et al. (2016))
 with regard to \code{n_worth}, see also \code{\link[bhmbasket]{getMuVar}}.
 The scale parameter of \eqn{\tau} is set to \code{tau_scale}.
+
 For the Nex components:
 The means of \eqn{\mu_j} are set to the \code{0}.
 The variances of \eqn{\tau_j} are calculated as proposed in "Robust exchangeability designs for early
 phase clinical trials with multiple strata" (Neuenschwander et al. (2016))
 with regard to \code{n_worth}, see also \code{\link[bhmbasket]{getMuVar}}.
+\item \code{"exnex_mix"}: Uses the same default Ex prior construction as \code{"exnex"}.
+The Nex part default parameters are specified as a one-component mixture prior with
+\code{w_nex = 1}, \code{mean_nex = matrix(logit(target_rates), nrow = 1)},
+and \code{sd_nex = matrix(sqrt(getMuVar(target_rates, 0, n_worth)), nrow = 1)}.
+This keeps the default mixture representation compatible with the \code{getPriorParameter()}'s input.
+\item \code{"exnex_adj_mix"}: Uses the same default Ex prior construction as \code{"exnex_adj"}.
+The Nex part is specified as a one-component mixture prior with
+\code{w_nex = 1}, \code{mean_nex = matrix(logit(target_rates), nrow = 1)},
+and \code{sd_nex = matrix(sqrt(getMuVar(target_rates, 0, n_worth)), nrow = 1)}.
+The Ex component is centered as in \code{"exnex_adj"}.
 \item \code{"pooled"}: The target rate that results in the greatest variance is determined.
 The scale parameter \eqn{\alpha} is set to that target rate times \code{n_worth}.
 The scale parameter \eqn{\beta} is set to 1 - that target rate times \code{n_worth}.
 \item \code{"stratified"}:
 The scale parameters \eqn{\alpha_j} are set to \code{target_rates * n_worth}.
 The scale parameters \eqn{\beta_j} are set to \code{(1 - target_rates) * n_worth}.
+\item \code{"stratified_mix"}:
+A two-component beta mixture prior is created by default for each cohort.
+The first component uses \code{a_j = target_rates * n_worth} and
+\code{b_j = (1 - target_rates) * n_worth}.
+The second component is a vague prior with \code{a_j = 1} and \code{b_j = 1}.
+The default mixture weights are \code{c(0.8, 0.2)}.
 }
 }
 \examples{
 prior_parameters_list <- getPriorParameters(
-  method_names = c("berry", "exnex", "exnex_adj", "pooled", "stratified"),
+  method_names = c("berry", "exnex", "exnex_mix", "exnex_adj",
+                   "exnex_adj_mix", "pooled", "stratified", "stratified_mix"),
   target_rates = c(0.1, 0.2, 0.3))
 }
 \references{
@@ -98,6 +117,7 @@ for early phase clinical trials with multiple strata."
 \code{\link[bhmbasket]{setPriorParametersExNexAdj}}
 \code{\link[bhmbasket]{setPriorParametersPooled}}
 \code{\link[bhmbasket]{setPriorParametersStratified}}
+\code{\link[bhmbasket]{setPriorParametersStratifiedMix}}
 \code{\link[bhmbasket]{combinePriorParameters}}
 \code{\link[bhmbasket]{getMuVar}}
 }

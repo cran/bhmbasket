@@ -39,9 +39,10 @@ as well as estimates of the biases and the mean squared errors of the point esti
 Bias and MSE will only be calculated for response rate estimates of simulated trials.
 For additional parameters, bias and MSE will not be calculated.
 
-Possible additional parameters are for the Bayesian hierarchical models are
-\code{c('mu', 'tau')} for \code{'berry'}, \code{'exnex'}, and \code{'exnex_adj'}.
-The latter two models can also access the posterior weights
+Possible additional parameters for the Bayesian hierarchical models are
+\code{c('mu', 'tau')} for \code{'berry'}, \code{'exnex'}, \code{'exnex_mix'}, \code{'exnex_adj'},
+and \code{'exnex_adj_mix'}.
+The ExNex-based models can also access posterior weights.
 \code{paste0("w_", seq_len(n_cohorts))}.
 }
 \examples{

@@ -4,20 +4,42 @@
 \alias{setPriorParametersExNexAdj}
 \title{setPriorParametersExNexAdj}
 \usage{
-setPriorParametersExNexAdj(mu_mean, mu_sd, tau_scale, mu_j, tau_j, w_j)
+setPriorParametersExNexAdj(
+  mu_mean,
+  mu_sd,
+  tau_scale,
+  mu_j = NULL,
+  tau_j = NULL,
+  w_j,
+  w_nex = NULL,
+  mean_nex = NULL,
+  sd_nex = NULL
+)
 }
 \arguments{
-\item{mu_mean}{A numeric for the mean of \eqn{\mu}}
+\item{mu_mean}{\link{numeric} Mean of \eqn{\mu}}
 
-\item{mu_sd}{A positive numeric for the standard deviation of \eqn{\mu}}
+\item{mu_sd}{\link{numeric} Positive standard deviation of \eqn{\mu}}
 
-\item{tau_scale}{A positive numeric for the scale parameter of \eqn{\tau}}
+\item{tau_scale}{\link{numeric} Positive scale parameter of \eqn{\tau}}
 
-\item{mu_j}{A vector of numerics for the means \eqn{\mu_j}}
+\item{mu_j}{\link{numeric} Vector of means \eqn{\mu_j} for the standard Nex priors.
+Ignored if \code{w_nex}, \code{mean_nex}, and \code{sd_nex} are provided.}
 
-\item{tau_j}{A vector of positive numerics for the standard deviations \eqn{\tau_j}}
+\item{tau_j}{\link{numeric} Vector of positive standard deviations \eqn{\tau_j}
+for the standard Nex priors. Ignored if \code{w_nex}, \code{mean_nex}, and \code{sd_nex} are provided.}
 
-\item{w_j}{A numeric in \verb{(0, 1)} for the weight of the Ex component}
+\item{w_j}{\link{numeric} Weight of the Ex component in \verb{(0, 1)}, or a numeric vector
+of mixture weights summing to 1 if multiple Ex components are specified.}
+
+\item{w_nex}{\link{numeric} Optional vector of mixture weights in \eqn{[0,1]} summing to 1
+for the Nex mixture prior.}
+
+\item{mean_nex}{\link{numeric} Optional matrix of Nex mixture means with one row per Nex
+mixture component and one column per cohort.}
+
+\item{sd_nex}{\link{numeric} Optional positive matrix of Nex mixture standard deviations with
+one row per Nex mixture component and one column per cohort.}
 }
 \value{
 A list with prior parameters of class \code{prior_parameters_list}
@@ -25,14 +47,47 @@ A list with prior parameters of class \code{prior_parameters_list}
 \description{
 This function sets prior parameters for the analysis method \code{"exnex_adj"}
 for use in \code{\link[bhmbasket]{performAnalyses}}.
+
+It supports two specifications for the Nex part:
+\itemize{
+\item the standard ExNex Adjusted specification with cohort-specific Nex priors via \code{mu_j} and \code{tau_j}
+\item an extended specification with a mixture prior on the Nex part via \code{w_nex}, \code{mean_nex}, and \code{sd_nex}
+}
 }
 \details{
-This function sets the prior parameters for the method ExNex Adjusted, which combines
+This function sets prior parameters for the ExNex Adjusted method, which combines
 the approach proposed by Neuenschwander et al. (2016) and the approach proposed by
-Berry et al. (2013).
+Berry et al. (2013). If \code{w_nex}, \code{mean_nex}, and \code{sd_nex} are all \code{NULL}, the standard
+ExNex Adjusted formulation is used. Otherwise, the Nex part is specified as a finite
+mixture prior.
 }
 \examples{
- prior_parameters_exnex_adj <- setPriorParametersExNexAdj(0, 1, 2, c(4, 5), c(6, 7), 0.8)
+## standard ExNex Adjusted
+prior_parameters_exnex_adj <- setPriorParametersExNexAdj(
+  mu_mean   = 0,
+  mu_sd     = 1,
+  tau_scale = 2,
+  mu_j      = c(4, 5),
+  tau_j     = c(6, 7),
+  w_j       = 0.8
+)
+
+## ExNex Adjusted with Nex mixture prior
+prior_parameters_exnex_adj_mix <- setPriorParametersExNexAdj(
+  mu_mean   = 0,
+  mu_sd     = 1,
+  tau_scale = 2,
+  w_j       = 0.8,
+  w_nex     = c(0.7, 0.3),
+  mean_nex  = rbind(c(0, 0), c(-1, -1)),
+  sd_nex    = rbind(c(6, 7), c(8, 9))
+)
+
+}
+\references{
+Neuenschwander, Beat, et al. "Robust exchangeability designs
+for early phase clinical trials with multiple strata."
+\emph{Pharmaceutical statistics} 15.2 (2016): 123-134.
 }
 \seealso{
 \code{\link[bhmbasket]{performAnalyses}}

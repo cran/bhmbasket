@@ -1,0 +1,51 @@
+
+## Bayesian Hierarchical Model: ExNexMix
+## ExNex model taken from Neuenschwander, Beat, et al.
+## Modified to allow mixture prior for the NEX component.
+
+model {
+
+  # prior distributions for EX parameters
+  for (jj in 1:Nexch) {
+    mu[jj] ~ dnorm(mu_mean[jj], mu_prec[jj])
+    prior_tau_prec[jj] <- pow(tau_HN_scale[jj], -2)
+    tau[jj] ~ dnorm(0, prior_tau_prec[jj]) I(0.001, )
+    prec_tau[jj] <- pow(tau[jj], -2)
+  }
+
+  # log-odds parameters under EX
+  for (jj in 1:Nexch) {
+    for (j in 1:Nstrata) {
+      re[jj, j] ~ dnorm(0, prec_tau[jj])
+      LogOdds[jj, j] <- mu[jj] + re[jj, j]
+    }
+  }
+
+  # log-odds parameters under NEX with mixture prior
+  for (j in 1:Nstrata) {
+    z_nex[j] ~ dcat(w_nex[1:K_nex])
+    LogOdds[Nmix, j] ~ dnorm(mean_nex[z_nex[j], j],
+                             prec_nex[z_nex[j], j])
+  }
+
+  # latent mixture indicators:
+  # exch_index: categorical 1, ..., Nmix = Nexch + 1
+  for (j in 1:Nstrata) {
+    exch_index[j] ~ dcat(pMix[1:Nmix])
+    for (jj in 1:Nmix) {
+      exch[j, jj] <- equals(exch_index[j], jj)
+    }
+  }
+
+  # pick theta
+  for (j in 1:Nstrata) {
+    theta[j] <- LogOdds[exch_index[j], j]
+  }
+
+  # likelihood part
+  for (j in 1:Nstrata) {
+    logit(p[j]) <- theta[j]
+    r[j] ~ dbin(p[j], n[j])
+  }
+
+}

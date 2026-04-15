@@ -37,12 +37,12 @@ interim_gos <- getGoDecisions(
   cohort_names        = c("p_1", "p_2", "p_3"),
   evidence_levels     = c(0.5, 0.8, 0.5),
   boundary_rules      = quote(c(x[1] > 0.8, x[2] > 0.6, x[3] > 0.7)))
-    
+
 scenarios_list <- continueRecruitment(
   n_subjects_add_list = list(c(30, 20, 10)),
   decisions_list      = interim_gos,
   method_name         = "exnex_adj")
-  
+
 getAverageNSubjects(scenarios_list)
 
 }

@@ -12,18 +12,18 @@
 #   - Sanity-checks the core formula and numeric type for a simple case.
 # ------------------------------------------------------------------
 test_that("mu_var calculation is correct for simple case", {
-  
+
   # Manual calculation: (n_worth * p * (1 - p))^-1 - tau_scale^2
   expected <- (2 * 0.5 * (1 - 0.5))^-1 - 1^2
-  
+
   result <- getMuVar(response_rate = 0.5, tau_scale = 1, n_worth = 2)
-  
+
   expect_equal(result, expected)
-  
+
   expect_type(result, "double")
-  
+
   expect_true(is.finite(result))
-  
+
 })
 
 # ------------------------------------------------------------------
@@ -38,11 +38,11 @@ test_that("mu_var calculation is correct for simple case", {
 #   - The variance formula assumes a valid Bernoulli probability.
 # ------------------------------------------------------------------
 test_that("error if response_rate out of bounds", {
-  
+
   expect_error(getMuVar(response_rate = -0.1, tau_scale = 1))
-  
+
   expect_error(getMuVar(response_rate = 1.5, tau_scale = 1))
-  
+
 })
 
 # ------------------------------------------------------------------
@@ -57,9 +57,9 @@ test_that("error if response_rate out of bounds", {
 #   - tau_scale represents a scale for a prior; negative values are not meaningful.
 # ------------------------------------------------------------------
 test_that("error if tau_scale negative", {
-  
+
   expect_error(getMuVar(response_rate = 0.5, tau_scale = -1))
-  
+
 })
 
 # ------------------------------------------------------------------
@@ -74,11 +74,11 @@ test_that("error if tau_scale negative", {
 #   - n_worth describes an “effective sample size”; must be >= 1 and integer.
 # ------------------------------------------------------------------
 test_that("error if n_worth not positive integer", {
-  
+
   expect_error(getMuVar(response_rate = 0.5, tau_scale = 1, n_worth = 0))
-  
+
   expect_error(getMuVar(response_rate = 0.5, tau_scale = 1, n_worth = 1.5))
-  
+
 })
 
 
@@ -99,10 +99,10 @@ test_that("error if n_worth not positive integer", {
 # ------------------------------------------------------------------
 test_that("valid input returns prior_parameters_list with correct structure", {
   result <- getPriorParametersBerry(target_rates = c(0.2, 0.8), tau_scale = 1, n_worth = 2)
-  
+
   expect_s3_class(result, "prior_parameters_list")
   expect_named(result, "berry")
-  
+
   # Check inner structure
   expect_true(is.list(result$berry))
   expect_named(result$berry, c("mu_mean", "mu_sd", "tau_scale"))
@@ -124,11 +124,11 @@ test_that("mu_sd is computed correctly for simple case", {
   target_rates <- c(0.2, 0.8)
   tau_scale <- 1
   n_worth <- 2
-  
+
   target_rate_max_var <- target_rates[abs(target_rates - 0.5) == max(abs(target_rates - 0.5))][1]
   expected_mu_var <- (n_worth * target_rate_max_var * (1 - target_rate_max_var))^-1 - tau_scale^2
   expected_mu_sd <- sqrt(expected_mu_var)
-  
+
   result <- getPriorParametersBerry(target_rates, tau_scale, n_worth)
   expect_equal(result$berry$mu_sd, expected_mu_sd)
 })
@@ -188,7 +188,7 @@ test_that("valid input returns prior_parameters_list with correct structure", {
     mu_sd = 0.5,
     tau_scale = 1
   )
-  
+
   expect_s3_class(result, "prior_parameters_list")
   expect_named(result, "berry")
   expect_true(is.list(result$berry))
@@ -266,13 +266,13 @@ test_that("error if mu_mean is not numeric", {
 # ------------------------------------------------------------------
 test_that("valid input returns prior_parameters_list with correct structure", {
   result <- getPriorParametersExNex(target_rates = c(0.3, 0.9), tau_scale = 1, n_worth = 2, w_j = 0.5)
-  
+
   expect_s3_class(result, "prior_parameters_list")
   expect_named(result, "exnex")
-  
+
   # Check inner structure
   expect_true(is.list(result$exnex))
-  expect_named(result$exnex, c("mu_mean", "mu_sd", "tau_scale", "mu_j", "tau_j", "w_j"))
+  expect_named(result$exnex, c("mu_mean", "mu_sd", "tau_scale", "w_j", "mu_j", "tau_j"))
 })
 
 # ------------------------------------------------------------------
@@ -291,12 +291,12 @@ test_that("mu_mean and mu_j use logit transform", {
   tau_scale <- 1
   n_worth <- 2
   w_j <- 0.5
-  
+
   target_rate_max_var <- target_rates[abs(target_rates - 0.5) == max(abs(target_rates - 0.5))][1]
   expected_mu_mean <- logit(target_rate_max_var)
   expected_mu_j <- logit(target_rates)
   result <- getPriorParametersExNex(target_rates, tau_scale, n_worth, w_j)
-  
+
   expect_equal(result$exnex$mu_mean, expected_mu_mean)
   expect_equal(result$exnex$mu_j, expected_mu_j)
 })
@@ -334,15 +334,15 @@ test_that("mu_sd and tau_j are computed correctly", {
   target_rates <- 0.8
   tau_scale <- 1
   n_worth <- 2
-  
+
   target_rate_max_var <- target_rates[abs(target_rates - 0.5) == max(abs(target_rates - 0.5))][1]
   expected_mu_var <- (n_worth * target_rate_max_var * (1 - target_rate_max_var))^-1 - tau_scale^2
   expected_mu_sd <- sqrt(expected_mu_var)
-  
+
   expected_tau_j <- sqrt((n_worth * target_rates * (1 - target_rates))^-1)
-  
+
   result <- getPriorParametersExNex(target_rates, tau_scale, n_worth, w_j = 0.5)
-  
+
   expect_equal(result$exnex$mu_sd, expected_mu_sd)
   expect_equal(result$exnex$tau_j, expected_tau_j)
 })
@@ -374,7 +374,7 @@ test_that("valid input returns prior_parameters_list with correct structure", {
   expect_s3_class(result, "prior_parameters_list")
   expect_named(result, "exnex")
   expect_true(is.list(result$exnex))
-  expect_named(result$exnex, c("mu_mean", "mu_sd", "tau_scale", "mu_j", "tau_j", "w_j"))
+  expect_named(result$exnex, c("mu_mean", "mu_sd", "tau_scale", "w_j", "mu_j", "tau_j"))
 })
 
 # ------------------------------------------------------------------
@@ -422,12 +422,12 @@ test_that("valid input returns prior_parameters_list with correct structure", {
     n_worth = 2,
     w_j = 0.5
   )
-  
+
   expect_s3_class(result, "prior_parameters_list")
   expect_named(result, "exnex_adj")
   expect_true(is.list(result$exnex_adj))
-  expect_named(result$exnex_adj, c("mu_mean", "mu_sd", "tau_scale", "mu_j", "tau_j", "w_j"))
-  
+  expect_named(result$exnex_adj, c("mu_mean", "mu_sd", "tau_scale", "w_j", "mu_j", "tau_j"))
+
   # Check adjusted values
   expect_equal(result$exnex_adj$mu_mean, 0)
   expect_equal(result$exnex_adj$mu_j, rep(0, length(c(0.2, 0.3))))
@@ -456,11 +456,11 @@ test_that("valid input returns prior_parameters_list with correct structure", {
     tau_j = c(0.3, 0.4),
     w_j = c(0.3, 0.3, 0.4)
   )
-  
+
   expect_s3_class(result, "prior_parameters_list")
   expect_named(result, "exnex_adj")
   expect_true(is.list(result$exnex_adj))
-  expect_named(result$exnex_adj, c("mu_mean", "mu_sd", "tau_scale", "mu_j", "tau_j", "w_j"))
+  expect_named(result$exnex_adj, c("mu_mean", "mu_sd", "tau_scale",  "w_j", "mu_j", "tau_j"))
 })
 
 # ------------------------------------------------------------------
@@ -507,7 +507,7 @@ test_that("valid input returns prior_parameters_list with correct structure", {
     target_rates = c(0.2, 0.4, 0.6),
     n_worth = 2
   )
-  
+
   expect_s3_class(result, "prior_parameters_list")
   expect_named(result, "pooled")
   expect_true(is.list(result$pooled))
@@ -579,7 +579,7 @@ test_that("selects target_rate closest to 0.5", {
 # ------------------------------------------------------------------
 test_that("valid input returns prior_parameters_list with correct structure", {
   result <- setPriorParametersPooled(a = 2, b = 3)
-  
+
   expect_s3_class(result, "prior_parameters_list")
   expect_named(result, "pooled")
   expect_true(is.list(result$pooled))
@@ -605,7 +605,7 @@ test_that("computes a_j and b_j correctly for multiple target rates", {
   target_rates <- c(0.2, 0.4, 0.6)
   n_worth <- 2
   result <- getPriorParametersStratified(target_rates, n_worth)
-  
+
   expect_equal(result$stratified$a_j, target_rates * n_worth)
   expect_equal(result$stratified$b_j, (1 - target_rates) * n_worth)
 })
@@ -662,7 +662,7 @@ test_that("returns correct structure and preserves input values", {
   a_j <- c(1, 2, 3)
   b_j <- c(4, 5, 6)
   result <- setPriorParametersStratified(a_j, b_j)
-  
+
   expect_equal(result$stratified$a_j, a_j)
   expect_equal(result$stratified$b_j, b_j)
   expect_s3_class(result, "prior_parameters_list")
@@ -839,19 +839,19 @@ test_that("invalid w_j throws error", {
 test_that("combinePriorParameters returns correct structure with real objects", {
   prior_parameters_stratified <- setPriorParametersStratified(c(1, 2), c(3, 4))
   prior_parameters_berry      <- setPriorParametersBerry(1, 1, 2)
-  
+
   result <- combinePriorParameters(list(prior_parameters_berry, prior_parameters_stratified))
-  
+
   # Check class and type
   expect_s3_class(result, "prior_parameters_list")
   expect_type(result, "list")
-  
+
   # Names should match method names from input
   expect_named(result, sort(c(names(prior_parameters_berry), names(prior_parameters_stratified))))
-  
+
   # Length should equal number of input elements
   expect_length(result, 2)
-  
+
   # Each element should be a list (inner structure)
   expect_true(all(vapply(result, is.list, logical(1))))
 })
@@ -870,9 +870,9 @@ test_that("combinePriorParameters returns correct structure with real objects", 
 test_that("combinePriorParameters sorts names alphabetically", {
   prior_parameters_stratified <- setPriorParametersStratified(c(1, 2), c(3, 4))
   prior_parameters_berry      <- setPriorParametersBerry(0, 1, 2)
-  
+
   result <- combinePriorParameters(list(prior_parameters_stratified, prior_parameters_berry))
-  
+
   expect_equal(names(result), sort(c(names(prior_parameters_stratified), names(prior_parameters_berry))))
 })
 
@@ -890,7 +890,7 @@ test_that("combinePriorParameters sorts names alphabetically", {
 test_that("combinePriorParameters errors on duplicate method names", {
   prior_parameters_berry1 <- setPriorParametersBerry(0, 1, 2)
   prior_parameters_berry2 <- setPriorParametersBerry(0, 1, 2)
-  
+
   expect_error(
     combinePriorParameters(list(prior_parameters_berry1, prior_parameters_berry2))
   )
@@ -925,6 +925,6 @@ test_that("combinePriorParameters errors if input is not a list", {
 test_that("combinePriorParameters errors if any element is not prior_parameters_list", {
   prior_parameters_berry <- setPriorParametersBerry(0, 1, 2)
   bad_input <- list(prior_parameters_berry, list(dummy = TRUE))
-  
+
   expect_error(combinePriorParameters(bad_input))
 })

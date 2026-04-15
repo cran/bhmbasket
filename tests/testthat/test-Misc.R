@@ -14,17 +14,17 @@
 #   - ensures the "no chunking" path is stable and predictable.
 # ------------------------------------------------------------------
 test_that("chunkVector returns single chunk when n_chunks <= 1", {
-  
+
   x <- 1:10
-  
+
   out <- chunkVector(x, n_chunks = 1)
-  
+
   expect_type(out, "list")
-  
+
   expect_length(out, 1)
-  
+
   expect_identical(out[[1]], x)
-  
+
 })
 
 # ------------------------------------------------------------------
@@ -41,21 +41,21 @@ test_that("chunkVector returns single chunk when n_chunks <= 1", {
 #   - verifies chunking doesn't drop or duplicate elements.
 # ------------------------------------------------------------------
 test_that("chunkVector splits into multiple chunks and preserves elements", {
-  
+
   x <- 1:10
-  
+
   out2 <- chunkVector(x, n_chunks = 2)
-  
+
   expect_type(out2, "list")
   expect_length(out2, 2)
   expect_identical(sort(unlist(out2)), x)
-  
+
   out3 <- chunkVector(x, n_chunks = 3)
-  
+
   expect_type(out3, "list")
   expect_length(out3, 3)
   expect_identical(sort(unlist(out3)), x)
-  
+
 })
 
 
@@ -74,17 +74,17 @@ test_that("chunkVector splits into multiple chunks and preserves elements", {
 #   - many downstream functions assume matrix input.
 # ------------------------------------------------------------------
 test_that("convertVector2Matrix converts vector to 1-row matrix", {
-  
+
   v <- 1:4
-  
+
   out <- convertVector2Matrix(v)
-  
+
   expect_true(is.matrix(out))
-  
+
   expect_equal(dim(out), c(1, 4))
-  
+
   expect_identical(as.integer(out[1, ]), v)
-  
+
 })
 
 # ------------------------------------------------------------------
@@ -99,15 +99,15 @@ test_that("convertVector2Matrix converts vector to 1-row matrix", {
 #   - prevents accidental reshaping when caller already provides a matrix.
 # ------------------------------------------------------------------
 test_that("convertVector2Matrix leaves matrices unchanged", {
-  
+
   m <- matrix(1:6, nrow = 2)
-  
+
   out <- convertVector2Matrix(m)
-  
+
   expect_true(is.matrix(out))
-  
+
   expect_identical(out, m)
-  
+
 })
 
 
@@ -127,20 +127,20 @@ test_that("convertVector2Matrix leaves matrices unchanged", {
 #   - mapUniqueTrials relies on retrieval from hashed keys.
 # ------------------------------------------------------------------
 test_that("createHashTable and getHashValues store and retrieve values", {
-  
+
   keys <- c("a", "b", "c")
   vals <- list(10, 20, 30)
-  
+
   h <- createHashTable(keys, vals)
-  
+
   expect_true(is.environment(h))
-  
+
   out <- getHashValues(c("b", "a"), h)
-  
+
   expect_type(out, "list")
-  
+
   expect_equal(out, list(20, 10))
-  
+
 })
 
 
@@ -158,17 +158,17 @@ test_that("createHashTable and getHashValues store and retrieve values", {
 #   - hashing must be stable even when matrices lack colnames.
 # ------------------------------------------------------------------
 test_that("getHashKeys uses default x* names without colnames", {
-  
+
   x <- matrix(c(1, 2, 3, 4), nrow = 2, byrow = TRUE)
-  
+
   out <- getHashKeys(x)
-  
+
   expect_type(out, "character")
   expect_length(out, 2)
-  
+
   expect_identical(out[1], "x1:1|x2:2")
   expect_identical(out[2], "x1:3|x2:4")
-  
+
 })
 
 # ------------------------------------------------------------------
@@ -183,15 +183,15 @@ test_that("getHashKeys uses default x* names without colnames", {
 #   - ensures keys remain consistent when names exist.
 # ------------------------------------------------------------------
 test_that("getHashKeys uses colnames when present", {
-  
+
   x <- matrix(c(1, 2, 3, 4), nrow = 2, byrow = TRUE)
   colnames(x) <- c("A", "B")
-  
+
   out <- getHashKeys(x)
-  
+
   expect_identical(out[1], "A:1|B:2")
   expect_identical(out[2], "A:3|B:4")
-  
+
 })
 
 
@@ -209,13 +209,13 @@ test_that("getHashKeys uses colnames when present", {
 #   - check for helper used in summaries.
 # ------------------------------------------------------------------
 test_that("cummulativeMovingAverage returns running mean", {
-  
+
   x <- c(2, 4, 6, 8)
-  
+
   out <- cummulativeMovingAverage(x)
-  
+
   expect_equal(out, c(2, 3, 4, 5))
-  
+
 })
 
 
@@ -233,11 +233,11 @@ test_that("cummulativeMovingAverage returns running mean", {
 #   - ensures string formatting is deterministic.
 # ------------------------------------------------------------------
 test_that("firstUpper capitalizes first character", {
-  
+
   expect_identical(firstUpper("hello"), "Hello")
   expect_identical(firstUpper("Hello"), "Hello")
   expect_identical(firstUpper("h"), "H")
-  
+
 })
 
 
@@ -258,7 +258,7 @@ test_that("getBlankString returns requested number of spaces", {
   out0 <- getBlankString(0)
   expect_type(out0, "character")
   expect_length(out0, 0)
-  
+
   out5 <- getBlankString(5)
   expect_identical(out5, "     ")
   expect_type(out5, "character")
@@ -280,12 +280,12 @@ test_that("getBlankString returns requested number of spaces", {
 #   - scaleRoundList relies on correct depth to traverse lists.
 # ------------------------------------------------------------------
 test_that("getListLevel returns correct nesting depth", {
-  
+
   expect_identical(getListLevel(1), 0)
   expect_identical(getListLevel(list(1)), 1)
   expect_identical(getListLevel(list(list(1))), 2)
   expect_identical(getListLevel(list(list(list(1)))), 3)
-  
+
 })
 
 
@@ -304,7 +304,7 @@ test_that("getListLevel returns correct nesting depth", {
 #   - used to map trial patterns to unique rows.
 # ------------------------------------------------------------------
 test_that("getRowIndexOfVectorInMatrix finds matching rows", {
-  
+
   m <- matrix(
     c(1, 2,
       3, 4,
@@ -312,13 +312,13 @@ test_that("getRowIndexOfVectorInMatrix finds matching rows", {
     ncol  = 2,
     byrow = TRUE
   )
-  
+
   expect_identical(getRowIndexOfVectorInMatrix(c(1, 2), m), 1L)
   expect_identical(getRowIndexOfVectorInMatrix(c(3, 4), m), 2L)
   expect_identical(getRowIndexOfVectorInMatrix(c(1, 9), m), 3L)
-  
+
   expect_length(getRowIndexOfVectorInMatrix(c(7, 7), m), 0)
-  
+
 })
 
 # ------------------------------------------------------------------
@@ -333,14 +333,14 @@ test_that("getRowIndexOfVectorInMatrix finds matching rows", {
 #   - prevents silent partial matching / wrong indexing.
 # ------------------------------------------------------------------
 test_that("getRowIndexOfVectorInMatrix errors on length mismatch", {
-  
+
   m <- matrix(1:4, ncol = 2)
-  
+
   expect_error(
     getRowIndexOfVectorInMatrix(c(1, 2, 3), m),
     "length of the vector must be equal"
   )
-  
+
 })
 
 
@@ -359,13 +359,13 @@ test_that("getRowIndexOfVectorInMatrix errors on length mismatch", {
 #   - core link utilities must be numerically correct.
 # ------------------------------------------------------------------
 test_that("invLogit returns correct inverse-logit values", {
-  
+
   expect_equal(invLogit(0), 0.5)
-  
+
   p <- c(0.1, 0.25, 0.8)
-  
+
   expect_equal(invLogit(logit(p)), p, tolerance = 1e-12)
-  
+
 })
 
 # ------------------------------------------------------------------
@@ -380,10 +380,10 @@ test_that("invLogit returns correct inverse-logit values", {
 #   - input validation prevents silent misuse.
 # ------------------------------------------------------------------
 test_that("invLogit errors for missing or non-numeric input", {
-  
+
   expect_error(invLogit(), "Please provide a numeric")
   expect_error(invLogit("x"), "Please provide a numeric")
-  
+
 })
 
 
@@ -402,13 +402,13 @@ test_that("invLogit errors for missing or non-numeric input", {
 #   - correctness of link function is fundamental for Berry/ExNex models.
 # ------------------------------------------------------------------
 test_that("logit returns correct log-odds and inverts invLogit", {
-  
+
   expect_equal(logit(0.5), 0)
-  
+
   p <- c(0.1, 0.25, 0.8)
-  
+
   expect_equal(invLogit(logit(p)), p, tolerance = 1e-12)
-  
+
 })
 
 # ------------------------------------------------------------------
@@ -423,12 +423,12 @@ test_that("logit returns correct log-odds and inverts invLogit", {
 #   - prevents invalid probability inputs leaking into models.
 # ------------------------------------------------------------------
 test_that("logit errors for invalid input", {
-  
+
   expect_error(logit(), "Please provide a numeric")
   expect_error(logit("x"), "Please provide a numeric")
   expect_error(logit(c(-0.1, 0.2)), "Please provide a numeric")
   expect_error(logit(c(0.2, 1.2)), "Please provide a numeric")
-  
+
 })
 
 
@@ -448,20 +448,20 @@ test_that("logit errors for invalid input", {
 #   - Verifies listPerMethod performs pure reshaping on real package outputs.
 # ------------------------------------------------------------------
 test_that("listPerMethod reshapes scenario-first lists into method-first lists", {
-  
+
   skip_if_not_installed("foreach")
   foreach::registerDoSEQ()
   set.seed(123)
-  
+
   method_names <- c("pooled", "stratified")
   target_rates <- c(0.5, 0.5)
-  
+
   scen <- simulateScenarios(
     n_subjects_list     = list(c(10, 10), c(20, 20)),
     response_rates_list = list(c(0.4, 0.4), c(0.6, 0.6)),
     n_trials = 2
   )
-  
+
   analyses <- performAnalyses(
     scenario_list      = scen,
     evidence_levels    = c(0.05, 0.5, 0.95),
@@ -470,21 +470,21 @@ test_that("listPerMethod reshapes scenario-first lists into method-first lists",
     n_mcmc_iterations  = 200,
     verbose            = FALSE
   )
-  
+
   estimates_per_method <- getEstimates(
     analyses_list   = analyses,
     point_estimator = "median",
     alpha_level     = 0.10
   )
-  
+
   method_names_from_obj <- names(estimates_per_method)
   scenario_names        <- names(estimates_per_method[[1]])
-  
+
   expect_true(all(grepl("^scenario_[0-9]+$", scenario_names)))
-  
+
   scenario_first <- vector("list", length = length(scenario_names))
   names(scenario_first) <- scenario_names
-  
+
   for (s in scenario_names) {
     scenario_first[[s]] <- lapply(
       method_names_from_obj,
@@ -492,12 +492,12 @@ test_that("listPerMethod reshapes scenario-first lists into method-first lists",
     )
     names(scenario_first[[s]]) <- method_names_from_obj
   }
-  
+
   reshaped <- listPerMethod(scenario_first)
-  
+
   expect_setequal(names(reshaped), method_names_from_obj)
   expect_setequal(names(reshaped[[method_names_from_obj[1]]]), scenario_names)
-  
+
   for (m in method_names_from_obj) {
     for (s in scenario_names) {
       expect_equal(reshaped[[m]][[s]], estimates_per_method[[m]][[s]])
@@ -520,16 +520,16 @@ test_that("listPerMethod reshapes scenario-first lists into method-first lists",
 #   - ensures list traversal is correct for supported nesting depths.
 # ------------------------------------------------------------------
 test_that("roundList rounds list entries for levels 1..3", {
-  
+
   l1 <- list(1.234, 2.345)
   expect_equal(roundList(l1, round_digits = 1, list_levels = 1), list(1.2, 2.3))
-  
+
   l2 <- list(a = list(1.234), b = list(2.345))
   expect_equal(roundList(l2, round_digits = 2, list_levels = 2), list(a = list(1.23), b = list(2.35)))
-  
+
   l3 <- list(a = list(b = list(1.234)))
   expect_equal(roundList(l3, round_digits = 0, list_levels = 3), list(a = list(b = list(1))))
-  
+
 })
 
 # ------------------------------------------------------------------
@@ -545,11 +545,11 @@ test_that("roundList rounds list entries for levels 1..3", {
 #   - avoids silently returning wrong types.
 # ------------------------------------------------------------------
 test_that("roundList errors for non-numerics and unsupported depth", {
-  
+
   expect_error(roundList(list("x"), round_digits = 1, list_levels = 1), "must contain numerics")
-  
+
   expect_error(roundList(list(1), round_digits = 1, list_levels = 4), "greater than 3")
-  
+
 })
 
 
@@ -567,16 +567,16 @@ test_that("roundList errors for non-numerics and unsupported depth", {
 #   - used by scaleRoundList; must behave deterministically.
 # ------------------------------------------------------------------
 test_that("scaleList scales list entries for levels 1..3", {
-  
+
   l1 <- list(1, 2)
   expect_equal(scaleList(l1, scale_param = 10, list_levels = 1), list(10, 20))
-  
+
   l2 <- list(a = list(1), b = list(2))
   expect_equal(scaleList(l2, scale_param = 0.5, list_levels = 2), list(a = list(0.5), b = list(1)))
-  
+
   l3 <- list(a = list(b = list(2)))
   expect_equal(scaleList(l3, scale_param = 3, list_levels = 3), list(a = list(b = list(6))))
-  
+
 })
 
 # ------------------------------------------------------------------
@@ -592,11 +592,11 @@ test_that("scaleList scales list entries for levels 1..3", {
 #   - protects against silent type coercion.
 # ------------------------------------------------------------------
 test_that("scaleList errors for non-numerics and unsupported depth", {
-  
+
   expect_error(scaleList(list("x"), scale_param = 2, list_levels = 1), "must contain numerics")
-  
+
   expect_error(scaleList(list(1), scale_param = 1, list_levels = 4), "greater than 3")
-  
+
 })
 
 
@@ -614,15 +614,15 @@ test_that("scaleList errors for non-numerics and unsupported depth", {
 #   - user-facing helper; expected to behave consistently.
 # ------------------------------------------------------------------
 test_that("scaleRoundList scales then rounds list entries", {
-  
+
   skip_if_not_installed("checkmate")
-  
+
   l <- list(1.234, 2.345)
-  
+
   out <- scaleRoundList(list = l, scale_param = 10, round_digits = 1)
-  
+
   expect_equal(out, list(12.3, 23.5))
-  
+
 })
 
 # ------------------------------------------------------------------
@@ -637,15 +637,15 @@ test_that("scaleRoundList scales then rounds list entries", {
 #   - matches documented behaviour and avoids surprising rounding.
 # ------------------------------------------------------------------
 test_that("scaleRoundList skips rounding when round_digits is NULL", {
-  
+
   skip_if_not_installed("checkmate")
-  
+
   l <- list(1.234, 2.345)
-  
+
   out <- scaleRoundList(list = l, scale_param = 1, round_digits = NULL)
-  
+
   expect_equal(out, l)
-  
+
 })
 
 # ------------------------------------------------------------------
@@ -662,17 +662,17 @@ test_that("scaleRoundList skips rounding when round_digits is NULL", {
 #   - ensures correct user-facing input checks.
 # ------------------------------------------------------------------
 test_that("scaleRoundList errors for invalid inputs", {
-  
+
   skip_if_not_installed("checkmate")
-  
+
   expect_error(scaleRoundList(), "Please provide a list")
   expect_error(scaleRoundList(list = 1), "Please provide a list")
-  
+
   l <- list(1.234)
-  
+
   expect_error(scaleRoundList(list = l, scale_param = -1))
   expect_error(scaleRoundList(list = l, round_digits = -1))
-  
+
 })
 
 
@@ -690,9 +690,9 @@ test_that("scaleRoundList errors for invalid inputs", {
 #   - used for parsing parameter/cohort suffix indices.
 # ------------------------------------------------------------------
 test_that("substrRight returns rightmost n characters", {
-  
+
   expect_identical(substrRight("abcdef", 1), "f")
   expect_identical(substrRight("abcdef", 2), "ef")
   expect_identical(substrRight("abcdef", 6), "abcdef")
-  
+
 })

@@ -42,17 +42,17 @@ outcome_analysis <- performAnalyses(
 # -------------------------------------------------------------------
 test_that("getEstimates works for simulated scenarios and returns sensible structure", {
   res <- getEstimates(analyses_list)
-  
+
   expect_type(res, "list")
   expect_true(length(res) > 0)
-  
+
   first_obj <- res[[1]]
   if (is.list(first_obj)) {
     first_mat <- first_obj[[1]]
   } else {
     first_mat <- first_obj
   }
-  
+
   expect_true(is.matrix(first_mat))
   expect_true(all(c("Mean", "SD", "2.5%", "50%", "97.5%", "Bias", "MSE") %in% colnames(first_mat)))
   expect_true(any(grepl("^p_",   rownames(first_mat))))
@@ -80,33 +80,33 @@ test_that("additional parameters are added and have NA bias/MSE", {
   res_base <- getEstimates(analyses_list)
   base_obj <- res_base[[1]]
   base_mat <- if (is.list(base_obj)) base_obj[[1]] else base_obj
-  
+
   res_add <- getEstimates(
     analyses_list   = analyses_list,
     add_parameters  = c("mu", "tau", "w_1", "w_2", "w_3")
   )
   add_obj <- res_add[[1]]
   add_mat <- if (is.list(add_obj)) add_obj[[1]] else add_obj
-  
+
   p3_row <- grep("^p_3$", rownames(add_mat))
   expect_length(p3_row, 1)
-  
+
   bias_p3   <- add_mat[p3_row, "Bias"]
   median_p3 <- add_mat[p3_row, "50%"]
-  
+
   true_rr_raw       <- analyses_list[[1]]$scenario_data$response_rates
   n_subj            <- analyses_list[[1]]$scenario_data$n_subjects[1, ]
   expected_true_rr3 <- true_rr_raw[3] / n_subj[[3]]
-  
+
   point_estimate3 <- bias_p3 + expected_true_rr3
   expect_equal(point_estimate3, median_p3)
-  
+
   expect_identical(colnames(base_mat), colnames(add_mat))
-  
+
   extra_rows <- setdiff(rownames(add_mat), rownames(base_mat))
   expect_true(length(extra_rows) > 0)
   expect_true(all(grepl("mu|tau|w_", extra_rows)))
-  
+
   expect_true(all(is.na(add_mat[extra_rows, "Bias"])))
   expect_true(all(is.na(add_mat[extra_rows, "MSE"])))
 })
@@ -128,7 +128,7 @@ test_that("single-trial outcome returns only posterior summaries (no bias/MSE)",
   res_single <- getEstimates(outcome_analysis)
   single_obj <- res_single[[1]]
   single_mat <- if (is.list(single_obj)) single_obj[[1]] else single_obj
-  
+
   expect_true(is.matrix(single_mat))
   expect_identical(
     colnames(single_mat),
@@ -154,7 +154,7 @@ test_that("alpha_level and add_parameters are validated correctly", {
   expect_error(
     getEstimates(analyses_list, alpha_level = 0.07)
   )
-  
+
   expect_error(
     getEstimates(analyses_list, add_parameters = c("totally_unknown_param"))
   )
@@ -179,20 +179,20 @@ test_that("alpha_level and add_parameters are validated correctly", {
 test_that("point_estimator argument is respected and input type is validated", {
   res_median <- getEstimates(analyses_list, point_estimator = "median")
   res_mean   <- getEstimates(analyses_list, point_estimator = "mean")
-  
+
   med_obj  <- res_median[[1]]
   mean_obj <- res_mean[[1]]
-  
+
   med_mat  <- if (is.list(med_obj))  med_obj[[1]]  else med_obj
   mean_mat <- if (is.list(mean_obj)) mean_obj[[1]] else mean_obj
-  
+
   expect_identical(dim(med_mat),   dim(mean_mat))
   expect_identical(colnames(med_mat), colnames(mean_mat))
-  
+
   expect_error(
     getEstimates(analyses_list, point_estimator = "mode")
   )
-  
+
   expect_error(
     getEstimates(list(a = 1))
   )
@@ -310,7 +310,7 @@ test_that("getGoDecisions: errors when evidence_levels or boundary_rules are mis
     ),
     "evidence_levels"
   )
-  
+
   expect_error(
     getGoDecisions(
       analyses_list   = analyses_list,
@@ -410,7 +410,7 @@ test_that("getGoDecisions: list evidence_levels all elements valid", {
     rep(0.5, length(default_cohorts)),
     rep(0.5, length(default_cohorts))
   )
-  
+
   expect_silent(
     getGoDecisions(
       analyses_list   = analyses_list,
@@ -507,7 +507,7 @@ test_that("getGoDecisions: non-list boundary_rules must have one entry per cohor
 # -------------------------------------------------------------------
 test_that("getGoDecisions: list boundary_rules each element must be a language object", {
   br <- list(123)
-  
+
   expect_error(
     getGoDecisions(
       analyses_list   = analyses_list,
@@ -533,7 +533,7 @@ test_that("getGoDecisions: list boundary_rules each element must be a language o
 # -------------------------------------------------------------------
 test_that("getGoDecisions: list boundary_rules each element must start with c()", {
   br <- list(quote(list(TRUE, TRUE, TRUE)))
-  
+
   expect_error(
     getGoDecisions(
       analyses_list   = analyses_list,
@@ -559,7 +559,7 @@ test_that("getGoDecisions: list boundary_rules each element must start with c()"
 # -------------------------------------------------------------------
 test_that("getGoDecisions: list boundary_rules must match number of cohorts", {
   br <- list(quote(c(TRUE, TRUE)))
-  
+
   expect_error(
     getGoDecisions(
       analyses_list   = analyses_list,
@@ -588,7 +588,7 @@ test_that("errors if boundary_rules list is longer than method_names", {
   coh  <- c("p_1", "p_2", "p_3")
   ev   <- c(0.5, 0.5, 0.5)
   br   <- rep(list(quote(c(TRUE, TRUE, TRUE))), length(m) + 1L)
-  
+
   expect_error(
     getGoDecisions(
       analyses_list   = analyses_list,
@@ -615,10 +615,10 @@ test_that("errors if boundary_rules list is longer than method_names", {
 test_that("errors if evidence_levels list is longer than method_names", {
   m    <- analyses_list[[1]]$analysis_parameters$method_names
   coh  <- c("p_1", "p_2", "p_3")
-  
+
   ev_vec <- c(0.5, 0.5, 0.5)
   ev     <- rep(list(ev_vec), length(m) + 1L)
-  
+
   expect_error(
     getGoDecisions(
       analyses_list   = analyses_list,
@@ -648,16 +648,16 @@ test_that("single boundary_rules expression is recycled to all methods", {
   coh  <- c("p_1", "p_2", "p_3")
   ev   <- c(0.5, 0.5, 0.5)
   rule <- quote(c(TRUE, TRUE, TRUE))
-  
+
   dec <- getGoDecisions(
     analyses_list   = analyses_list,
     cohort_names    = coh,
     evidence_levels = ev,
     boundary_rules  = rule
   )
-  
+
   br <- dec[[1]]$decision_rules$boundary_rules
-  
+
   expect_identical(length(br), length(m))
   for (i in seq_along(br)) {
     expect_true(identical(br[[i]], rule))
@@ -681,16 +681,16 @@ test_that("single evidence_levels vector is recycled to all methods", {
   m    <- analyses_list[[1]]$analysis_parameters$method_names
   coh  <- c("p_1", "p_2", "p_3")
   ev   <- c(0.5, 0.5, 0.5)
-  
+
   dec <- getGoDecisions(
     analyses_list   = analyses_list,
     cohort_names    = coh,
     evidence_levels = ev,
     boundary_rules  = quote(c(TRUE, TRUE, TRUE))
   )
-  
+
   gamma <- dec[[1]]$decision_rules$gamma_levels
-  
+
   expect_identical(length(gamma), length(m))
   for (i in seq_along(gamma)) {
     expect_equal(gamma[[i]], ev)
@@ -716,7 +716,7 @@ test_that("getGoDecisions: succeeds when all scenarios use identical method_name
     evidence_levels = c(0.5, 0.5, 0.8),
     boundary_rules  = quote(c(TRUE, TRUE, TRUE))
   )
-  
+
   expect_s3_class(res, "decision_list")
 })
 
@@ -737,7 +737,7 @@ test_that("getGoDecisions: errors when scenarios were analysed with different me
   bad$scenario_2 <- bad$scenario_1
   bad$scenario_2$analysis_parameters$method_names <-
     rev(bad$scenario_2$analysis_parameters$method_names)
-  
+
   expect_error(
     getGoDecisions(
       analyses_list   = bad,
@@ -773,16 +773,16 @@ test_that("getGoDecisions: returns decision_list with overall and cohort decisio
     evidence_levels = c(0.5, 0.5, 0.8),
     boundary_rules  = quote(c(TRUE, TRUE, TRUE))
   )
-  
+
   scen1  <- decisions[[1]]
   m_dec  <- as.matrix(scen1$decisions_list[[1]])
-  
+
   expect_true("overall" %in% colnames(m_dec))
   cohort_cols <- setdiff(colnames(m_dec), "overall")
   expect_true(length(cohort_cols) >= 1)
-  
+
   expect_identical(scen1$decision_rules$cohort_names, default_cohorts)
-  
+
   stored_gamma_flat <- unlist(scen1$decision_rules$gamma_levels, use.names = FALSE)
   expect_true(all(c(0.5, 0.5, 0.8) %in% stored_gamma_flat))
 })
@@ -807,14 +807,14 @@ test_that("overall_min_gos = 1 means overall Go if at least one cohort is Go", {
     boundary_rules  = quote(c(TRUE, TRUE, TRUE)),
     overall_min_gos = 1L
   )
-  
+
   m <- as.matrix(dec[[1]]$decisions_list[[1]])
   coh_cols <- setdiff(colnames(m), "overall")
   expect_true(length(coh_cols) >= 1)
-  
+
   coh <- m[, coh_cols, drop = FALSE] > 0
   overall_calc <- apply(coh, 1, function(x) sum(x) >= 1L)
-  
+
   overall <- as.logical(m[, "overall"])
   expect_identical(overall, overall_calc)
 })
@@ -839,14 +839,14 @@ test_that("overall_min_gos = 2 means overall Go if at least two cohorts are Go",
     boundary_rules  = quote(c(TRUE, TRUE, TRUE)),
     overall_min_gos = 2L
   )
-  
+
   m <- as.matrix(dec[[1]]$decisions_list[[1]])
   coh_cols <- setdiff(colnames(m), "overall")
   expect_true(length(coh_cols) >= 1)
-  
+
   coh <- m[, coh_cols, drop = FALSE] > 0
   overall_calc <- apply(coh, 1, function(x) sum(x) >= 2L)
-  
+
   overall <- as.logical(m[, "overall"])
   expect_identical(overall, overall_calc)
 })
@@ -868,23 +868,23 @@ test_that("getGoDecisions: previous go_decisions prevent resurrection of stopped
   if (is.null(analyses_list[[1]]$scenario_data$previous_analyses)) {
     skip("previous_analyses not available in scenario_data")
   }
-  
+
   decisions <- getGoDecisions(
     analyses_list   = analyses_list,
     cohort_names    = default_cohorts,
     evidence_levels = c(0.5, 0.5, 0.8),
     boundary_rules  = quote(c(TRUE, TRUE, TRUE))
   )
-  
+
   new_mat     <- as.matrix(decisions[[1]]$decisions_list[[1]])
   new_cohcols <- setdiff(colnames(new_mat), "overall")
   new_gos     <- new_mat[, new_cohcols, drop = FALSE] > 0
-  
+
   prev_mat <- analyses_list[[1]]$scenario_data$previous_analyses$go_decisions
   prev_gos <- as.matrix(prev_mat[, -1, drop = FALSE]) > 0
-  
+
   expect_identical(dim(prev_gos), dim(new_gos))
-  
+
   resurrected <- new_gos & !prev_gos
   expect_false(any(resurrected))
 })
@@ -979,7 +979,7 @@ test_that("getGoProbabilities: errors if Go and NoGo matrices have different dim
   bad_nogo <- nogo_decisions_list
   bad_nogo[[1]]$decisions_list[[1]] <-
     bad_nogo[[1]]$decisions_list[[1]][, -1, drop = FALSE]
-  
+
   expect_error(
     getGoProbabilities(
       go_decisions_list   = go_decisions_list,
@@ -1003,14 +1003,14 @@ test_that("getGoProbabilities: errors if Go and NoGo matrices have different dim
 # -------------------------------------------------------------------
 test_that("getGoProbabilities: Go-only call returns list-of-lists of matrices", {
   probs <- getGoProbabilities(go_decisions_list)
-  
+
   expect_type(probs, "list")
   expect_true(all(sapply(probs, is.list)))
-  
+
   first_method   <- names(probs)[1]
   first_scenario <- names(probs[[first_method]])[1]
   mat            <- probs[[first_method]][[first_scenario]]
-  
+
   expect_true(is.matrix(mat))
   expect_identical(rownames(mat), "Go")
   expect_true(ncol(mat) >= 1)
@@ -1030,15 +1030,15 @@ test_that("getGoProbabilities: Go-only call returns list-of-lists of matrices", 
 # -------------------------------------------------------------------
 test_that("getGoProbabilities: Go row equals column means of go_decisions", {
   probs <- getGoProbabilities(go_decisions_list)
-  
+
   method_names   <- names(go_decisions_list[[1]]$decisions_list)
   scenario_names <- names(go_decisions_list)
-  
+
   for (m in method_names) {
     for (s in scenario_names) {
       mat_prob <- probs[[m]][[s]]
       go_mat   <- go_decisions_list[[s]]$decisions_list[[m]]
-      
+
       expected <- colMeans(go_mat)
       expect_equal(
         mat_prob["Go", ],
@@ -1066,26 +1066,26 @@ test_that("getGoProbabilities: Go and NoGo rows match colMeans of input decision
     go_decisions_list   = go_decisions_list,
     nogo_decisions_list = nogo_decisions_list
   )
-  
+
   method_names   <- names(go_decisions_list[[1]]$decisions_list)
   scenario_names <- names(go_decisions_list)
-  
+
   for (m in method_names) {
     for (s in scenario_names) {
       mat_prob <- probs[[m]][[s]]
-      
+
       go_mat   <- go_decisions_list[[s]]$decisions_list[[m]]
       nogo_mat <- nogo_decisions_list[[s]]$decisions_list[[m]]
-      
+
       expected_go   <- colMeans(go_mat)
       expected_nogo <- colMeans(nogo_mat)
-      
+
       expect_equal(
         mat_prob["Go", ],
         expected_go,
         info = paste("Go row mismatch in method", m, "scenario", s)
       )
-      
+
       expect_equal(
         mat_prob["NoGo", ],
         expected_nogo,
@@ -1112,11 +1112,11 @@ test_that("getGoProbabilities: columns sum to 1 when NoGo decisions are provided
     go_decisions_list   = go_decisions_list,
     nogo_decisions_list = nogo_decisions_list
   )
-  
+
   first_method <- names(probs)[1]
   for (scen_name in names(probs[[first_method]])) {
     mat <- probs[[first_method]][[scen_name]]
-    
+
     col_sums <- colSums(mat)
     expect_true(
       all(abs(col_sums - 1) == 0),
@@ -1141,13 +1141,13 @@ test_that("getGoProbabilities: columns sum to 1 when NoGo decisions are provided
 test_that("getGoProbabilities: errors if any decision is both Go and NoGo", {
   overlap_go   <- go_decisions_list
   overlap_nogo <- nogo_decisions_list
-  
+
   scen1_name <- names(overlap_go)[1]
   meth1_name <- names(overlap_go[[scen1_name]]$decisions_list)[1]
-  
+
   overlap_go[[scen1_name]]$decisions_list[[meth1_name]][1, 1]   <- TRUE
   overlap_nogo[[scen1_name]]$decisions_list[[meth1_name]][1, 1] <- TRUE
-  
+
   expect_error(
     getGoProbabilities(
       go_decisions_list   = overlap_go,
@@ -1206,7 +1206,7 @@ test_that("print.decision_list: header shows correct number of scenarios and met
     n_methods,
     ifelse(n_methods == 1, "", "s")
   )
-  
+
   expect_output(
     print(decisions_dl),
     header_pattern
@@ -1228,9 +1228,9 @@ test_that("print.decision_list: header shows correct number of scenarios and met
 test_that("print.decision_list: prints a section for each scenario", {
   scen_names <- names(decisions_dl)
   expect_true(length(scen_names) >= 1)
-  
+
   output <- capture.output(print(decisions_dl))
-  
+
   for (nm in scen_names) {
     expect_true(
       any(grepl(paste0("\\b", nm, "\\b"), output)),
@@ -1254,9 +1254,9 @@ test_that("print.decision_list: prints a section for each scenario", {
 test_that("print.decision_list: each method name appears in printed matrix rows", {
   method_names <- names(decisions_dl[[1]]$decisions_list)
   expect_true(length(method_names) >= 1)
-  
+
   output <- capture.output(print(decisions_dl))
-  
+
   for (m in method_names) {
     m_upper <- paste0(toupper(substr(m, 1, 1)), substr(m, 2, nchar(m)))
     expect_true(
@@ -1283,7 +1283,7 @@ test_that("print.decision_list: digits argument is accepted and does not error",
     print(decisions_dl, digits = 1),
     "decision_list of"
   )
-  
+
   expect_output(
     print(decisions_dl, digits = 4),
     "decision_list of"
@@ -1326,7 +1326,7 @@ test_that("print.decision_list: works when decision_rules are NULL", {
   for (i in seq_along(dl_no_rules)) {
     dl_no_rules[[i]]$decision_rules <- NULL
   }
-  
+
   header_pattern <- sprintf(
     "decision_list of %d scenario%s with %d method%s",
     n_scenarios,
@@ -1334,7 +1334,7 @@ test_that("print.decision_list: works when decision_rules are NULL", {
     n_methods,
     ifelse(n_methods == 1, "", "s")
   )
-  
+
   expect_output(
     print(dl_no_rules),
     header_pattern
@@ -1356,18 +1356,18 @@ test_that("print.decision_list: works when decision_rules are NULL", {
 # -------------------------------------------------------------------
 test_that("print.decision_list: for multiple methods, one row per method is printed per scenario", {
   go_probs <- getGoProbabilities(decisions_dl)
-  
+
   scenario_index <- 1L
   mat_ref <- do.call(
     rbind,
     lapply(go_probs, function(y) y[[scenario_index]])
   )
-  
+
   output <- capture.output(print(decisions_dl))
-  
+
   method_label_lines <- grep("^    - ", output, value = TRUE)
   expected_total_rows <- n_scenarios * nrow(mat_ref)
-  
+
   expect_equal(
     length(method_label_lines),
     expected_total_rows,
@@ -1555,7 +1555,7 @@ test_that("negateGoDecisions: overall_min_nogos must be 'all' or non-negative in
     ),
     "overall_min_nogos"
   )
-  
+
   expect_error(
     negateGoDecisions(
       go_decisions_list = go_decisions_list_neg,
@@ -1582,16 +1582,16 @@ test_that("negateGoDecisions: cohort-level entries are logically negated", {
     go_decisions_list = go_decisions_list_neg,
     overall_min_nogos = "all"
   )
-  
+
   for (s in seq_len(n_scen_neg)) {
     for (m in seq_len(n_meth_neg)) {
       go_mat   <- go_decisions_list_neg[[s]]$decisions_list[[m]]
       nogo_mat <- nogo_list[[s]]$decisions_list[[m]]
-      
+
       if (ncol(go_mat) > 1L) {
         go_coh   <- go_mat[, -1, drop = FALSE]
         nogo_coh <- nogo_mat[, -1, drop = FALSE]
-        
+
         expect_identical(
           nogo_coh,
           !go_coh,
@@ -1620,13 +1620,13 @@ test_that("negateGoDecisions: overall_min_nogos = 'all' means 'all cohorts NoGo'
     go_decisions_list = go_decisions_list_neg,
     overall_min_nogos = "all"
   )
-  
+
   for (s in seq_len(n_scen_neg)) {
     for (m in seq_len(n_meth_neg)) {
       nogo_mat <- nogo_list[[s]]$decisions_list[[m]]
-      
+
       if (ncol(nogo_mat) <= 1L) next
-      
+
       n_decisions   <- ncol(nogo_mat)
       nogo_coh      <- nogo_mat[, -1, drop = FALSE]
       expected_over <- apply(
@@ -1634,7 +1634,7 @@ test_that("negateGoDecisions: overall_min_nogos = 'all' means 'all cohorts NoGo'
         function(x) sum(x) >= (n_decisions - 1L)
       )
       actual_over   <- as.logical(nogo_mat[, 1])
-      
+
       expect_identical(
         actual_over,
         expected_over
@@ -1660,13 +1660,13 @@ test_that("negateGoDecisions: overall_min_nogos = 0 makes overall always TRUE", 
     go_decisions_list = go_decisions_list_neg,
     overall_min_nogos = 0L
   )
-  
+
   for (s in seq_len(n_scen_neg)) {
     for (m in seq_len(n_meth_neg)) {
       nogo_mat <- nogo_list[[s]]$decisions_list[[m]]
-      
+
       if (ncol(nogo_mat) <= 1L) next
-      
+
       overall_col <- as.logical(nogo_mat[, 1])
       expect_true(
         all(overall_col)
@@ -1693,16 +1693,16 @@ test_that("negateGoDecisions: numeric overall_min_nogos = k means 'at least k co
     go_decisions_list = go_decisions_list_neg,
     overall_min_nogos = k
   )
-  
+
   for (s in seq_len(n_scen_neg)) {
     for (m in seq_len(n_meth_neg)) {
       nogo_mat <- nogo_list[[s]]$decisions_list[[m]]
       if (ncol(nogo_mat) <= 1L) next
-      
+
       nogo_coh      <- nogo_mat[, -1, drop = FALSE]
       expected_over <- apply(nogo_coh, 1, function(x) sum(x) >= k)
       actual_over   <- as.logical(nogo_mat[, 1])
-      
+
       expect_identical(
         actual_over,
         expected_over,
@@ -1734,15 +1734,15 @@ test_that("negateGoDecisions: single-column decisions are just negated, no overa
     )
   )
   class(simple_dl) <- "decision_list"
-  
+
   nogo_simple <- negateGoDecisions(
     go_decisions_list = simple_dl,
     overall_min_nogos = "all"
   )
-  
+
   orig_mat <- simple_dl$scenario_1$decisions_list$method_1
   new_mat  <- nogo_simple$scenario_1$decisions_list$method_1
-  
+
   expect_identical(
     new_mat,
     !orig_mat,

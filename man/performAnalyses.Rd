@@ -7,7 +7,8 @@
 performAnalyses(
   scenario_list,
   evidence_levels = c(0.025, 0.05, 0.5, 0.8, 0.9, 0.95, 0.975),
-  method_names = c("berry", "exnex", "exnex_adj", "pooled", "stratified"),
+  method_names = c("berry", "exnex", "exnex_mix", "exnex_adj", "exnex_adj_mix", "pooled",
+    "stratified", "stratified_mix"),
   target_rates = NULL,
   prior_parameters_list = NULL,
   calc_differences = NULL,
@@ -26,7 +27,8 @@ as e.g. created with \code{\link[bhmbasket]{simulateScenarios}}}
 Default: \code{c(0.025, 0.05, 0.5, 0.8, 0.9, 0.95, 0.975)}}
 
 \item{method_names}{A vector of strings for the names of the methods to be used. Must
-be one of the default values, Default: \code{c("berry", "exnex", "exnex_adj", "pooled", "stratified")}}
+be one of the default values, Default:
+\code{c("berry", "exnex", "exnex_mix", "exnex_adj", "exnex_adj_mix", "pooled", "stratified", "stratified_mix")}}
 
 \item{target_rates}{A vector of numerics in \verb{(0, 1)} for the
 target rates of each cohort, Default: \code{NULL}}
@@ -72,6 +74,9 @@ This function applies the following analysis models to (simulated) scenarios of 
 \item BHM that combines above approaches: \code{"exnex_adj"}
 \item Pooled beta-binomial approach: \code{"pooled"}
 \item Stratified beta-binomial approach: \code{"stratified"}
+\item BHM with mixture prior on the Nex component: \code{"exnex_mix"}
+\item Adjusted BHM with mixture prior on the Nex component: \code{"exnex_adj_mix"}
+\item Stratified beta-binomial approach with mixture beta prior: \code{"stratified_mix"}
 }
 The posterior distributions of the BHMs are approximated with Markov chain Monte Carlo (MCMC)
 methods implemented in JAGS.
@@ -97,6 +102,10 @@ determined with \code{foreach::getDoParWorkers()}.
 
 The JAGS code for the BHM \code{"exnex"} was taken from Neuenschwander et al. (2016).
 The JAGS code for the BHM \code{"exnex_adj"} is based on the JAGS code for \code{"exnex"}.
+The JAGS code for the BHM \code{"exnex_mix"} extends the \code{"exnex"} model by using
+a mixture prior for the Nex component.
+The JAGS code for the BHM \code{"exnex_adj_mix"} extends the \code{"exnex_adj"} model by using
+a mixture prior for the Nex component.
 }
 \examples{
  trial_data <- createTrial(
